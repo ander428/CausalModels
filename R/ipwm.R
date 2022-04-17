@@ -12,23 +12,23 @@ setClass("summary.ipwm")
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[init_params]{init_params}}.
 #' @param f (optional) an object of class "formula" that overrides the default parameter
-#' @param family (optional) the family to be used in the general linear model.
+#' @param family the family to be used in the general linear model.
 #' By default, this is set to \code{\link[stats:gaussian]{gaussian}}.
-#' @param simple (optional) a boolean indicator to build default formula with interactions.
+#' @param simple a boolean indicator to build default formula with interactions.
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
 #' @param p.f (optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 #' weighting function.
-#' @param p.simple (optional) a boolean indicator to build default formula with interactions for the propensity models.
+#' @param p.simple a boolean indicator to build default formula with interactions for the propensity models.
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
-#' @param p.family (optional) the family to be used in the underlying propensity model.
+#' @param p.family the family to be used in the underlying propensity model.
 #' By default, this is set to \code{\link[stats:gaussian]{binomial}}.
 #' @param p.scores (optional) use calculated propensity scores for the weights. If using standardized weights,
 #' the numerator will still be modeled.
-#' @param SW (optional) a boolean indicator to indicate the use of standardized weights. By default, this is set to true.
+#' @param SW a boolean indicator to indicate the use of standardized weights. By default, this is set to true.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
 #' @returns \code{ipwm} returns an object of \code{\link[base::class]{class} "ipwm"}.
@@ -54,23 +54,24 @@ setClass("summary.ipwm")
 #' @export
 #'
 #' @examples
+#' library(causaldata)
 #' data(nhefs)
-#' nhefs$cens <- ifelse(is.na(nhefs$wt82), 1, 0)
-#'
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),] # provisionally ignore subjects with missing values for weight in 1982
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity", "smokeyrs", "exercise", "active", "wt71")
+#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
+#'                      "smokeyrs", "exercise", "active", "wt71")
+#'
 #' init_params(wt82_71, qsmk,
 #'             covariates = confounders,
-#'             data = nhefs.nmv, simple = T)
+#'             data = nhefs.nmv)
 #'
 #' # model using all defaults
 #' model <- ipwm(data = nhefs.nmv)
 #' summary(model)
 #'
 #' # Model using calculated propensity scores and manual outcome formula
-#' p.scores <- propensity_scores(nhefs.nmv)
+#' p.scores <- propensity_scores(nhefs.nmv)$p.scores
 #' model <- ipwm(wt82_71 ~ qsmk, p.scores = p.scores, data = nhefs.nmv)
 #' summary(model)
 
@@ -117,7 +118,7 @@ ipwm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
     data$sw <- 1 / p.scores
   }
 
-  model <- glm(f, data=data, weights=sw, family = family, ...)
+  model <- glm(f, weights=sw, data=data, family = family, ...)
   model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
 
   # calculate causal stats
@@ -126,8 +127,7 @@ ipwm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
   ATE <- data.frame(
     "Beta" = beta,
     "SE" = SE,
-    "2.5 %" = beta-qnorm(0.975)*SE,
-    "97.5 %" = beta+qnorm(0.975)*SE,
+    conf_int(beta, SE),
     check.names=FALSE
   )
   row.names(ATE) <- pkg.env$treatment
@@ -143,7 +143,7 @@ ipwm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
 print.ipwm <- function(x) {
   print(x$model)
   cat("\r\n")
-  cat(pkg.env$treatment, "ATE:", "\r\n")
+  cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
   cat("Estimate - ", x$ATE, "\r\n")
   cat("SE       - ", x$ATE.summary$SE, "\r\n")
   cat("95% CI   - (", x$ATE.summary$`2.5 %`, ", ", x$ATE.summary$`97.5 %`, ")", "\r\n")
@@ -161,7 +161,7 @@ summary.ipwm <- function(x) {
 print.summary.ipwm <- function(s) {
   class(s) <- "summary.glm"
   print(s)
-  cat("ATE:", "\r\n")
+  cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
   print(s$ATE)
   cat("\r\n")
 }

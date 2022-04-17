@@ -12,5 +12,7 @@ LazyData: true
 RoxygenNote: 7.1.2
 Imports:
   stats,
+  vctrs,
   causaldata,
-  methods
+  methods,
+  boot

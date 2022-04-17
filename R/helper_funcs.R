@@ -74,38 +74,9 @@ check_init <- function() {
   }
 }
 
-# get_cov_names <- function(cov, data) {
-#   params <- as.list(match.call()[-1])
-#   print(params)
-#   covariates <- list()
-#   print(as.character(params$cov)[-1])
-#   retun(covariates)
-# }
-#
-# get_cov_names(data = test_data)
-#
-# # example w/ all variables
-# build_formula("am", c("hp", "vs", "qsec", "wt"), data = test_data, simple = T)
-#
-#
-# str(data)
-# #
-# ip_est <- function(out, tr, cov = list(), data, simple = F) {
-#   params <- as.list(match.call()[-1])
-#   params$covariates <- as.character(params$cov)[-1]
-#
-#
-# }
-#
-# summary(lm(mpg ~ wt, data=test_data))
-#
-# stand_mod(cyl, mpg, c(hp, vs, am), data = data)
-# ?type
-# col(data)
-#
-#
-# test_data <- mtcars %>%
-#   mutate(cyl = as.factor(cyl),
-#          across(vs:carb, as.factor))
-# library(dplyr)
-# glimpse(test_data)
+
+conf_int <- function(x, se) {
+  lb <- x - qnorm(0.975)*se
+  ub <- x + qnorm(0.975)*se
+  return(list("2.5 %" = lb, "97.5 %" = ub))
+}

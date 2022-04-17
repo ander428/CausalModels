@@ -12,9 +12,9 @@ setClass("summary.stdm")
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[init_params]{init_params}}.
 #' @param f (optional) an object of class "formula" that overrides the default parameter
-#' @param family (optional) the family to be used in the general linear model.
+#' @param family the family to be used in the general linear model.
 #' By default, this is set to \code{\link[stats:gaussian]{gaussian}}.
-#' @param simple (optional) a boolean indicator to build default formula with interactions.
+#' @param simple a boolean indicator to build default formula with interactions.
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
@@ -41,16 +41,17 @@ setClass("summary.stdm")
 #' @export
 #'
 #' @examples
+#' library(causaldata)
 #' data(nhefs)
-#' nhefs$cens <- ifelse(is.na(nhefs$wt82), 1, 0)
-#'
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),] # provisionally ignore subjects with missing values for weight in 1982
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity", "smokeyrs", "exercise", "active", "wt71")
+#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
+#'                      "smokeyrs", "exercise", "active", "wt71")
+#'
 #' init_params(wt82_71, qsmk,
 #'             covariates = confounders,
-#'             data = nhefs.nmv, simple = T)
+#'             data = nhefs.nmv)
 #'
 #' # model using all defaults
 #' model <- stdm(data = nhefs.nmv)
@@ -70,23 +71,38 @@ stdm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
     f <- pkg.env$f_out
   }
 
-  model <- glm(f, data=data, family = family, ...)
+  # make three copies of the dataset
+  cp <- data
+  cp$label <- "observed"
+  tr0 <- cp
+  tr0$label <- "cf_untreated"
+  tr0[pkg.env$treatment] <- 0
+  tr0[pkg.env$outcome] <- NA
+  tr1 <- cp
+  tr1$label <- "cf_treated"
+  tr1[pkg.env$treatment] <- 1
+  tr1[pkg.env$outcome] <- NA
+
+  combined_data <- rbind(cp, tr0, tr1)
+
+  model <- glm(f, data=combined_data, family = family, ...)
+  combined_data$Y_hat <- predict(model, combined_data)
+
+  means <- c(mean(combined_data$Y_hat[combined_data$label=="observed"]),     # estimated outcome of the observed
+                   mean(combined_data$Y_hat[combined_data$label=="cf_treated"]),   # estimated counterfactual of the treated
+                   mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]), # estimated counterfactual of the untreated
+                   mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) -  # estimated risk differnece
+                     mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]),
+                   mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) /  # estimated risk ratio
+                     mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]))
+  ATE.summary <- data.frame(Estimate = means)
+  rownames(ATE.summary) <- c("Observed effect", "Counterfactual (treated)",
+                            "Counterfactual (untreated)", "Risk difference",
+                            "Risk ratio")
+
   model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
-
-  # calculate causal stats
-  beta <- coef(model)[[2]]
-  SE <- coef(summary(model))[2,2]
-  ATE <- data.frame(
-    "Beta" = beta,
-    "SE" = SE,
-    "2.5 %" = beta-qnorm(0.975)*SE,
-    "97.5 %" = beta+qnorm(0.975)*SE,
-    check.names=FALSE
-  )
-  row.names(ATE) <- pkg.env$treatment
-
-  output <- list("call" = model$call, "formula" = model$call$formula, "model" = model, "ATE" = beta, "ATE.summary" = ATE)
-
+  output <- list("call" = model$call, "formula" = model$call$formula,
+                 "model" = model, "ATE" = ATE.summary$Estimate[[4]], "ATE.summary" = ATE.summary)
   class(output) <- "stdm"
   return(output)
 }
@@ -95,10 +111,8 @@ stdm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
 print.stdm <- function(x) {
   print(x$model)
   cat("\r\n")
-  cat(pkg.env$treatment, "ATE:", "\r\n")
-  cat("Estimate - ", x$ATE, "\r\n")
-  cat("SE       - ", x$ATE.summary$SE, "\r\n")
-  cat("95% CI   - (", x$ATE.summary$`2.5 %`, ", ", x$ATE.summary$`97.5 %`, ")", "\r\n")
+  cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
+  cat(x$ATE, "\r\n")
 }
 
 #' @export
@@ -113,7 +127,7 @@ summary.stdm <- function(x) {
 print.summary.stdm <- function(s) {
   class(s) <- "summary.glm"
   print(s)
-  cat("ATE:", "\r\n")
+  cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
   print(s$ATE)
   cat("\r\n")
 }
@@ -127,4 +141,33 @@ predict.stdm <- function(x, newdata=NULL) {
     return(predict(x$model, newdata=newdata))
   }
 }
+
+estimate_ate <- function(data, indices) {
+  # make three copies of the dataset
+  cp <- data[indices,]
+  cp$label <- "observed"
+  tr0 <- cp
+  tr0$label <- "cf_untreated"
+  tr0[pkg.env$treatment] <- 0
+  tr0[pkg.env$outcome] <- NA
+  tr1 <- cp
+  tr1$label <- "cf_treated"
+  tr1[pkg.env$treatment] <- 1
+  tr1[pkg.env$outcome] <- NA
+
+  combined_data <- rbind(cp, tr0, tr1)
+
+  model <- glm(f, data=combined_data, family = family, ...)
+  combined_data$Y_hat <- predict(model, combined_data)
+
+
+  return(c(mean(combined_data$Y_hat[combined_data$label=="observed"]),     # estimated outcome of the observed
+           mean(combined_data$Y_hat[combined_data$label=="cf_treated"]),   # estimated counterfactual of the treated
+           mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]), # estimated counterfactual of the untreated
+           mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) -  # estimated risk differnece
+             mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]),
+           mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) /  # estimated risk ratio
+             mean(combined_data$Y_hat[combined_data$label=="cf_untreated"])))
+}
+
 

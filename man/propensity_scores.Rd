@@ -18,11 +18,11 @@ This should be the same data used in \code{\link[init_params]{init_params}}.}
 
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
-\item{simple}{(optional) a boolean indicator to build default formula with interactions.
+\item{simple}{a boolean indicator to build default formula with interactions.
 If true, interactions will be excluded. If false, interactions will be included. By
 default, simple is set to false.}
 
-\item{family}{(optional) the family to be used in the general linear model.
+\item{family}{the family to be used in the general linear model.
 By default, this is set to \code{\link[stats:binomial]{binomial}}
 NOTE: if this is changed, the outcome of the model may not be the probabilities and the results will not be valid.}
 
@@ -50,16 +50,17 @@ An object of class \code{"propensity_scores"} is a list containing the following
 and the covariates as the independent variables.
 }
 \examples{
+library(causaldata)
 data(nhefs)
-nhefs$cens <- ifelse(is.na(nhefs$wt82), 1, 0)
-
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),] # provisionally ignore subjects with missing values for weight in 1982
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity", "smokeyrs", "exercise", "active", "wt71")
+confounders <- c("sex", "race", "age", "education", "smokeintensity",
+                     "smokeyrs", "exercise", "active", "wt71")
+
 init_params(wt82_71, qsmk,
             covariates = confounders,
-            data = nhefs.nmv, simple = T)
+            data = nhefs.nmv)
 
 p.score <- propensity_scores(nhefs.nmv)
 p.score
