@@ -75,7 +75,7 @@ propensity_scores <- function(data, f = NA,  simple = pkg.env$simple, family = b
   scores <- predict(model, type="response")
 
   # probability of treatment for the untreated
-  scores[which(data[[pkg.env$treatment]] == 0)] = 1 - scores[which(data[[pkg.env$treatment]] == 0)]
+  # scores[which(data[[pkg.env$treatment]] == 0)] = 1 - scores[which(data[[pkg.env$treatment]] == 0)]
 
   model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
   output <- list("call" = model$call, "formula" = model$call$formula, "model" = model, "p.scores" = scores)

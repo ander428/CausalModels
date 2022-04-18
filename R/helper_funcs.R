@@ -83,3 +83,11 @@ conf_int <- function(x, se) {
   ub <- x + qnorm(0.975)*se
   return(list("2.5 %" = lb, "97.5 %" = ub))
 }
+
+
+contrast_matrix <- function(model, rows, names) {
+  mat <- matrix(0, nrow = rows, ncol = length(coef(model)))
+  colnames(mat) <- names(coef(model))
+  rownames(mat) <- names
+  return(mat)
+}
