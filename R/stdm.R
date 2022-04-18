@@ -66,9 +66,18 @@ stdm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
   # grab function parameters
   params <- as.list(match.call()[-1])
 
-  # if user gives an outcome formula
+  # if no formula provided
   if(is.na(as.character(f))[1]) {
-    f <- pkg.env$f_out
+    # override simple
+    if(simple != pkg.env$simple) {
+      f <- build_formula(out = pkg.env$outcome, tr = pkg.env$treatment,
+                         cov = pkg.env$covariates,
+                         data = data, simple = simple)
+    }
+    # use default
+    else {
+      f <- formula(pkg.env$f_out)
+    }
   }
 
   # make three copies of the dataset
@@ -95,6 +104,7 @@ stdm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
                      mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]),
                    mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) /  # estimated risk ratio
                      mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]))
+
   ATE.summary <- data.frame(Estimate = means)
   rownames(ATE.summary) <- c("Observed effect", "Counterfactual (treated)",
                             "Counterfactual (untreated)", "Risk difference",

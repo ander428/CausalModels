@@ -56,9 +56,17 @@ propensity_scores <- function(data, f = NA,  simple = pkg.env$simple, family = b
   # grab function parameters
   params <- as.list(match.call()[-1])
 
-  # if formula provided, then override default
+  # if no formula provided
   if(is.na(as.character(f))[1]) {
-    f <- formula(pkg.env$f_tr)
+    # override simple
+    if(simple != pkg.env$simple) {
+      f <- build_formula(out = pkg.env$treatment, cov = pkg.env$covariates,
+                         data = data, simple = simple)
+    }
+    # use default
+    else {
+      f <- formula(pkg.env$f_tr)
+    }
   }
 
   # build model and generate scores

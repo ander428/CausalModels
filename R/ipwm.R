@@ -14,10 +14,6 @@ setClass("summary.ipwm")
 #' @param f (optional) an object of class "formula" that overrides the default parameter
 #' @param family the family to be used in the general linear model.
 #' By default, this is set to \code{\link[stats:gaussian]{gaussian}}.
-#' @param simple a boolean indicator to build default formula with interactions.
-#' If true, interactions will be excluded. If false, interactions will be included. By
-#' default, simple is set to false.
-#' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
 #' @param p.f (optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 #' weighting function.
 #' @param p.simple a boolean indicator to build default formula with interactions for the propensity models.
@@ -75,9 +71,8 @@ setClass("summary.ipwm")
 #' model <- ipwm(wt82_71 ~ qsmk, p.scores = p.scores, data = nhefs.nmv)
 #' summary(model)
 
-ipwm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
-                 p.f = NA, p.simple = pkg.env$simple, p.family = binomial(),
-                 p.scores = NA, SW = T, ...) {
+ipwm <- function(data, f = NA, family = gaussian(), p.f = NA, p.simple = pkg.env$simple,
+                 p.family = binomial(), p.scores = NA, SW = T, ...) {
 
   check_init()
 
@@ -89,23 +84,32 @@ ipwm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
     f <- as.formula(paste(pkg.env$outcome, "~", pkg.env$treatment))
   }
 
-  # if user given a propensity formula
-  if(!is.na(as.character(p.f))[1]) {
-    # if no propensity scores
-    if(anyNA(p.scores)) {
+  # if user does not give propensity scores
+  if(anyNA(p.scores)) {
+    if(!is.na(as.character(p.f))[1]) {
       p.scores <- propensity_scores(p.f, data = data, family = p.family)$p.scores
     }
+    # if no given propensity formula
     else {
-      message("Ignoring given propensity formula since propensity scores have been given.")
-      message("Using given propensity scores.")
+        if(p.simple != pkg.env$simple) {
+          p.f <- build_formula(out = pkg.env$treatment, cov = pkg.env$covariates,
+                               data = data, simple = p.simple)
+        }
+        # use default
+        else {
+          p.f <- formula(pkg.env$f_tr)
+        }
+
+        p.scores <- propensity_scores(p.f, data = data, family = p.family)$p.scores
     }
+
   }
-  # if no given propensity formula
+  # if user does give propensity scores
   else {
-    # if no propensity scores
-    if(anyNA(p.scores)) {
-      p.scores <- propensity_scores(pkg.env$f_tr, data = data, family = p.family)$p.scores
+    if(!is.na(as.character(p.f))[1]) {
+      message("Ignoring given propensity formula since propensity scores have been given.")
     }
+    message("Using given propensity scores.")
   }
 
   if(SW) {

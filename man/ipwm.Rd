@@ -8,7 +8,6 @@ ipwm(
   data,
   f = NA,
   family = gaussian(),
-  simple = pkg.env$simple,
   p.f = NA,
   p.simple = pkg.env$simple,
   p.family = binomial(),
@@ -25,11 +24,6 @@ This should be the same data used in \code{\link[init_params]{init_params}}.}
 
 \item{family}{the family to be used in the general linear model.
 By default, this is set to \code{\link[stats:gaussian]{gaussian}}.}
-
-\item{simple}{a boolean indicator to build default formula with interactions.
-If true, interactions will be excluded. If false, interactions will be included. By
-default, simple is set to false.
-NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.}
 
 \item{p.f}{(optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 weighting function.}
