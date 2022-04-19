@@ -1,8 +1,8 @@
-#' @exportClass pmm
-setClass("pmm")
+#' @exportClass propensity_matching
+setClass("propensity_matching")
 
 #' @title Propensity Scores
-#' @description `pmm` builds a logistic regression with the target as the treatment variable
+#' @description `propensity_matching` builds a logistic regression with the target as the treatment variable
 #' and the covariates as the independent variables.
 #'
 #' @param data a data frame containing the variables in the model.
@@ -16,11 +16,11 @@ setClass("pmm")
 #' NOTE: if this is changed, the outcome of the model may not be the probabilities and the results will not be valid.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
-#' @returns \code{pmm} returns an object of \code{\link[base::class]{class} "pmm"}
+#' @returns \code{propensity_matching} returns an object of \code{\link[base::class]{class} "propensity_matching"}
 #'
 #' The function \code{summary} can be used to obtain and print a summary of the underlying glm model.
 #'
-#' An object of class \code{"pmm"} is a list containing the following:
+#' An object of class \code{"propensity_matching"} is a list containing the following:
 #'
 #' \tabular{ll}{
 #'  \code{call} \tab the matched call. \cr
@@ -49,11 +49,11 @@ setClass("pmm")
 #'             covariates = confounders,
 #'             data = nhefs.nmv)
 #'
-#' p.score <- pmm(nhefs.nmv)
+#' p.score <- propensity_matching(nhefs.nmv)
 #' p.score
 
-pmm <- function(data, f = NA, simple = pkg.env$simple, p.scores = NA, p.simple = pkg.env$simple,
-                type = "strata", grp.width = 0.1, quant = T, ...) {
+propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores = NA, p.simple = pkg.env$simple,
+                                type = "strata", grp.width = 0.1, quant = T, ...) {
   check_init()
 
   # grab function parameters
@@ -136,10 +136,10 @@ pmm <- function(data, f = NA, simple = pkg.env$simple, p.scores = NA, p.simple =
       for(i in 2:nrow(lookup)) {
         cont_mat[i, paste(names(model$coefficients)[2],":",lookup$grp.name[[i]], sep = "")] <- 1
       },
-    error = function(e) {
-      stop("Unable to stratify propensity scores. This is likely due to a lack of positivity in the groups.
+      error = function(e) {
+        stop("Unable to stratify propensity scores. This is likely due to a lack of positivity in the groups.
            Try setting 'grp.width' to a larger value.")
-    })
+      })
     model <- glht(model, cont_mat)
     call <- model$model$call
 
@@ -171,26 +171,26 @@ pmm <- function(data, f = NA, simple = pkg.env$simple, p.scores = NA, p.simple =
   output <- list("call" = call, "formula" = call$formula, "model" = model, "p.scores" = p.scores,
                  "ATE" = ATE, "ATE.summary" = ATE.summary, "type" = type)
 
-  class(output) <- "pmm"
+  class(output) <- "propensity_matching"
   return(output)
 }
 
 #' @export
-print.pmm <- function(x) {
+print.propensity_matching <- function(x) {
   if(x$type == "strata" || x$type == "stdm") {
     print(x$model)
   }
 }
 
 #' @export
-summary.pmm <- function(x) {
+summary.propensity_matching <- function(x) {
   if(x$type == "strata" || x$type == "stdm") {
     summary(x$model)
   }
 }
 
 #' @export
-predict.pmm <- function(x, newdata=NULL) {
+predict.propensity_matching <- function(x, newdata=NULL) {
   if(is.null(newdata)) {
     if(x$type == "strata") {
       return(predict(x$model$model))

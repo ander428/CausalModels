@@ -1,11 +1,11 @@
-#' @exportClass stdm
-setClass("stdm")
+#' @exportClass standardization
+setClass("standardization")
 
-#' @exportClass summary.stdm
-setClass("summary.stdm")
+#' @exportClass summary.standardization
+setClass("summary.standardization")
 
-#' @title Parametric stdm
-#' @description `stdm` uses a standard \code{\link[stats:glm]{glm}} linear model to perform parametric stdm
+#' @title Parametric Standardization
+#' @description `standardization` uses a standard \code{\link[stats:glm]{glm}} linear model to perform parametric standardization
 #' by adjusting bias through including all confounders as covariates. The coefficient of treatment is the estimated
 #' average causal effect.
 #'
@@ -20,11 +20,11 @@ setClass("summary.stdm")
 #' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
-#' @returns \code{stdm} returns an object of \code{\link[base::class]{class} "stdm"}.
+#' @returns \code{standardization} returns an object of \code{\link[base::class]{class} "standardization"}.
 #'
 #' The function \code{summary} can be used to obtain and print a summary of the underlying glm outcome model.
 #'
-#' An object of class \code{"stdm"} is a list containing the following:
+#' An object of class \code{"standardization"} is a list containing the following:
 #'
 #' \tabular{ll}{
 #'  \code{call} \tab the matched call. \cr
@@ -54,12 +54,12 @@ setClass("summary.stdm")
 #'             data = nhefs.nmv)
 #'
 #' # model using all defaults
-#' model <- stdm(data = nhefs.nmv)
+#' model <- standardization(data = nhefs.nmv)
 #' summary(model)
 
-stdm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
-                 p.f = NA, p.simple = pkg.env$simple, p.family = binomial(),
-                 p.scores = NA, SW = T, ...) {
+standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
+                            p.f = NA, p.simple = pkg.env$simple, p.family = binomial(),
+                            p.scores = NA, SW = T, ...) {
 
   check_init()
 
@@ -113,12 +113,12 @@ stdm <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
   model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
   output <- list("call" = model$call, "formula" = model$call$formula,
                  "model" = model, "ATE" = ATE.summary$Estimate[[4]], "ATE.summary" = ATE.summary)
-  class(output) <- "stdm"
+  class(output) <- "standardization"
   return(output)
 }
 
 #' @export
-print.stdm <- function(x) {
+print.standardization <- function(x) {
   print(x$model)
   cat("\r\n")
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
@@ -126,15 +126,15 @@ print.stdm <- function(x) {
 }
 
 #' @export
-summary.stdm <- function(x) {
+summary.standardization <- function(x) {
   s <- summary(x$model)
   s$ATE <- x$ATE.summary
-  class(s) <- "summary.stdm"
+  class(s) <- "summary.standardization"
   return(s)
 }
 
 #' @export
-print.summary.stdm <- function(s) {
+print.summary.standardization <- function(s) {
   class(s) <- "summary.glm"
   print(s)
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
@@ -143,7 +143,7 @@ print.summary.stdm <- function(s) {
 }
 
 #' @export
-predict.stdm <- function(x, newdata=NULL) {
+predict.standardization <- function(x, newdata=NULL) {
   if(is.null(newdata)) {
     return(predict(x$model))
   }
