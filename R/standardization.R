@@ -6,8 +6,8 @@ setClass("summary.standardization")
 
 #' @title Parametric Standardization
 #' @description `standardization` uses a standard \code{\link[stats:glm]{glm}} linear model to perform parametric standardization
-#' by adjusting bias through including all confounders as covariates. The coefficient of treatment is the estimated
-#' average causal effect.
+#' by adjusting bias through including all confounders as covariates. The model will calculate during training both the risk diference
+#' and the risk ratio. Both can be accessed from the model as well as estimates of the couterfactuals of treatment.
 #'
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[init_params]{init_params}}.
@@ -22,7 +22,8 @@ setClass("summary.standardization")
 #'
 #' @returns \code{standardization} returns an object of \code{\link[base::class]{class} "standardization"}.
 #'
-#' The function \code{summary} can be used to obtain and print a summary of the underlying glm outcome model.
+#' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
+#' the underlying \code{glm} model.
 #'
 #' An object of class \code{"standardization"} is a list containing the following:
 #'
@@ -35,13 +36,15 @@ setClass("summary.standardization")
 #'  \tab \cr
 #'  \code{ATE} \tab the estimated average treatment effect. \cr
 #'  \tab \cr
-#'  \code{ATE.summary} \tab a data frame containing the ATE, SE, and 95\% CI of the ATE. \cr
+#'  \code{ATE.summary} \tab a data frame containing estimates of the treatment effect of the observed,
+#'  counterfactuals, and risk metrics. \cr
 #' }
 #'
 #' @export
 #'
 #' @examples
 #' library(causaldata)
+#'
 #' data(nhefs)
 #' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
@@ -55,7 +58,10 @@ setClass("summary.standardization")
 #'
 #' # model using all defaults
 #' model <- standardization(data = nhefs.nmv)
+#' print(model)
 #' summary(model)
+#' print(model$ATE.summary)
+#' print(model$ATE.summary$Estimate[[2]] - model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
 
 standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
                             p.f = NA, p.simple = pkg.env$simple, p.family = binomial(),
@@ -92,11 +98,13 @@ standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$
   tr1[pkg.env$treatment] <- 1
   tr1[pkg.env$outcome] <- NA
 
-  combined_data <- rbind(cp, tr0, tr1)
+  combined_data <- rbind(cp, tr0, tr1) # combine copies
 
+  # build model using all three copies
   model <- glm(f, data=combined_data, family = family, ...)
   combined_data$Y_hat <- predict(model, combined_data)
 
+  # calculate means in each group
   means <- c(mean(combined_data$Y_hat[combined_data$label=="observed"]),     # estimated outcome of the observed
              mean(combined_data$Y_hat[combined_data$label=="cf_treated"]),   # estimated counterfactual of the treated
              mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]), # estimated counterfactual of the untreated
@@ -151,33 +159,33 @@ predict.standardization <- function(x, newdata=NULL) {
     return(predict(x$model, newdata=newdata))
   }
 }
-
-estimate_ate <- function(data, indices) {
-  # make three copies of the dataset
-  cp <- data[indices,]
-  cp$label <- "observed"
-  tr0 <- cp
-  tr0$label <- "cf_untreated"
-  tr0[pkg.env$treatment] <- 0
-  tr0[pkg.env$outcome] <- NA
-  tr1 <- cp
-  tr1$label <- "cf_treated"
-  tr1[pkg.env$treatment] <- 1
-  tr1[pkg.env$outcome] <- NA
-
-  combined_data <- rbind(cp, tr0, tr1)
-
-  model <- glm(f, data=combined_data, family = family, ...)
-  combined_data$Y_hat <- predict(model, combined_data)
-
-
-  return(c(mean(combined_data$Y_hat[combined_data$label=="observed"]),     # estimated outcome of the observed
-           mean(combined_data$Y_hat[combined_data$label=="cf_treated"]),   # estimated counterfactual of the treated
-           mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]), # estimated counterfactual of the untreated
-           mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) -  # estimated risk differnece
-             mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]),
-           mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) /  # estimated risk ratio
-             mean(combined_data$Y_hat[combined_data$label=="cf_untreated"])))
-}
-
+#
+# estimate_ate <- function(data, indices) {
+#   # make three copies of the dataset
+#   cp <- data[indices,]
+#   cp$label <- "observed"
+#   tr0 <- cp
+#   tr0$label <- "cf_untreated"
+#   tr0[pkg.env$treatment] <- 0
+#   tr0[pkg.env$outcome] <- NA
+#   tr1 <- cp
+#   tr1$label <- "cf_treated"
+#   tr1[pkg.env$treatment] <- 1
+#   tr1[pkg.env$outcome] <- NA
+#
+#   combined_data <- rbind(cp, tr0, tr1)
+#
+#   model <- glm(f, data=combined_data, family = family, ...)
+#   combined_data$Y_hat <- predict(model, combined_data)
+#
+#
+#   return(c(mean(combined_data$Y_hat[combined_data$label=="observed"]),     # estimated outcome of the observed
+#            mean(combined_data$Y_hat[combined_data$label=="cf_treated"]),   # estimated counterfactual of the treated
+#            mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]), # estimated counterfactual of the untreated
+#            mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) -  # estimated risk differnece
+#              mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]),
+#            mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) /  # estimated risk ratio
+#              mean(combined_data$Y_hat[combined_data$label=="cf_untreated"])))
+# }
+#
 

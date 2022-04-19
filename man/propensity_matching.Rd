@@ -2,7 +2,7 @@
 % Please edit documentation in R/propensity_matching.R
 \name{propensity_matching}
 \alias{propensity_matching}
-\title{Propensity Scores}
+\title{Propensity Matching}
 \usage{
 propensity_matching(
   data,
@@ -26,16 +26,30 @@ This should be the same data used in \code{\link[init_params]{init_params}}.}
 If true, interactions will be excluded. If false, interactions will be included. By
 default, simple is set to false.}
 
-\item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
+\item{p.scores}{(optional) use calculated propensity scores for matching. Otherwise, propensity scores
+will be automatically modeled.}
 
-\item{family}{the family to be used in the general linear model.
-By default, this is set to \code{\link[stats:binomial]{binomial}}
-NOTE: if this is changed, the outcome of the model may not be the probabilities and the results will not be valid.}
+\item{p.simple}{a boolean indicator to build default formula with interactions for the propensity models.
+If true, interactions will be excluded. If false, interactions will be included. By
+default, simple is set to false.}
+
+\item{type}{a string representing the type of propensity model to be used. By default, the function will stratify. Standardization with
+propensity scores may also be used. The value given for \code{type} must be in \code{c("strata", "stdm")}.}
+
+\item{grp.width}{a decimal value to specify the range to stratify the propensity scores. If option \code{quant} is set to true,
+this will represent the spread of percentiles. If false, it will represent the spread of raw values of propensity
+scores. Must be a decimal between 0 and 1. By default, this is set to 0.1. This option is ignored for standardization.}
+
+\item{quant}{a boolean indicator to specify the type of stratification. If true (default), the model will stratify by
+percentiles. If false, the scores will be grouped by a range of their raw values. This option is ignored for standardization.}
+
+\item{...}{additional arguments that may be passed to the underlying \code{\link[propensity_scores]{propensity_scores}} function.}
 }
 \value{
 \code{propensity_matching} returns an object of \code{\link[base::class]{class} "propensity_matching"}
 
-The function \code{summary} can be used to obtain and print a summary of the underlying glm model.
+The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with the underlying \code{glht} or
+\code{standardization} model.
 
 An object of class \code{"propensity_matching"} is a list containing the following:
 
@@ -44,14 +58,22 @@ An object of class \code{"propensity_matching"} is a list containing the followi
  \tab \cr
  \code{formula} \tab the formula used in the model. \cr
  \tab \cr
- \code{model} \tab the underlying glm model. \cr
+ \code{model} \tab either the underlying \code{glht} or \code{standardization} model. \cr
  \tab \cr
  \code{p.scores} \tab the estimated propensity scores.\cr
+ \tab \cr
+ \code{ATE} \tab the estimated average treatment effect (risk difference).\cr
+ \tab \cr
+ \code{ATE.summary} \tab either a data frame containing the \code{glht} or \code{standardization} summary. \cr
 }
 }
 \description{
-`propensity_matching` builds a logistic regression with the target as the treatment variable
-and the covariates as the independent variables.
+`propensity_matching` uses either stratification or standardization to model an outcome
+conditional on the propensity scores. In stratification, the model will break the propensity scores
+into groups and output a \code{\link[multcomp::glht]{glht}} model based off a contrast matrix which
+estimates the change in average causal effect within groups of propensity scores. In standardization,
+the model will output a \code{\link[standardization]{standardization}} model that conditions on the
+propensity strata rather than the covariates. The model can also predict the expected outcome.
 }
 \examples{
 library(causaldata)
@@ -68,6 +90,8 @@ init_params(wt82_71, qsmk,
             covariates = confounders,
             data = nhefs.nmv)
 
-p.score <- propensity_matching(nhefs.nmv)
-p.score
+pm.model <- propensity_matching(nhefs.nmv)
+pm.model$ATE.summary
+summary(pm.model)
+head(data.frame(preds=predict(pm.model)))
 }

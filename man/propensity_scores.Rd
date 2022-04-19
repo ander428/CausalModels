@@ -31,7 +31,8 @@ NOTE: if this is changed, the outcome of the model may not be the probabilities 
 \value{
 \code{propensity_scores} returns an object of \code{\link[base::class]{class} "propensity_scores"}
 
-The function \code{summary} can be used to obtain and print a summary of the underlying glm model.
+The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
+the underlying \code{glm} model.
 
 An object of class \code{"propensity_scores"} is a list containing the following:
 

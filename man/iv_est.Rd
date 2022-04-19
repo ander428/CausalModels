@@ -2,46 +2,23 @@
 % Please edit documentation in R/iv_est.R
 \name{iv_est}
 \alias{iv_est}
-\title{Propensity Scores}
+\title{Standard Instrumental Variable Estimator}
 \usage{
 iv_est(IV, data)
 }
 \arguments{
+\item{IV}{the instrumental variable to be used in the conditional means. Must be a factor with no more than 2 levels.
+It is assumed the second level is the positive level, i.e., the binary equivalent of the second factor level should be 1
+and the first should be 0.}
+
 \item{data}{a data frame containing the variables in the model.
 This should be the same data used in \code{\link[init_params]{init_params}}.}
-
-\item{f}{(optional) an object of class "formula" that overrides the default parameter}
-
-\item{simple}{a boolean indicator to build default formula with interactions.
-If true, interactions will be excluded. If false, interactions will be included. By
-default, simple is set to false.}
-
-\item{family}{the family to be used in the general linear model.
-By default, this is set to \code{\link[stats:binomial]{binomial}}
-NOTE: if this is changed, the outcome of the model may not be the probabilities and the results will not be valid.}
-
-\item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
-\code{propensity_scores} returns an object of \code{\link[base::class]{class} "propensity_scores"}
-
-The function \code{summary} can be used to obtain and print a summary of the underlying glm model.
-
-An object of class \code{"propensity_scores"} is a list containing the following:
-
-\tabular{ll}{
- \code{call} \tab the matched call. \cr
- \tab \cr
- \code{formula} \tab the formula used in the model. \cr
- \tab \cr
- \code{model} \tab the underlying glm model. \cr
- \tab \cr
- \code{p.scores} \tab the estimated propensity scores.\cr
-}
+\code{iv_est} returns a double value representing the standard IV estimate.
 }
 \description{
-`propensity_scores` builds a logistic regression with the target as the treatment variable
-and the covariates as the independent variables.
+`iv_est` calculates the standard IV estimand using the conditional means on a given instrumental variable.
 }
 \examples{
 library(causaldata)
@@ -51,11 +28,12 @@ nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
 confounders <- c("sex", "race", "age", "education", "smokeintensity",
                      "smokeyrs", "exercise", "active", "wt71")
-
+nhefs.iv <- nhefs[which(!is.na(nhefs$wt82) & !is.na(nhefs$price82)),]
+nhefs.iv$highprice <- as.factor(ifelse(nhefs.iv$price82>=1.5, 1, 0))
+nhefs.iv$qsmk <- as.factor(nhefs.iv$qsmk)
 init_params(wt82_71, qsmk,
             covariates = confounders,
-            data = nhefs.nmv)
+            data = nhefs.iv)
 
-p.score <- propensity_scores(nhefs.nmv)
-p.score
+iv_est("highprice", nhefs.iv)
 }

@@ -29,7 +29,8 @@ setClass("summary.ipweighting")
 #'
 #' @returns \code{ipweighting} returns an object of \code{\link[base::class]{class} "ipweighting"}.
 #'
-#' The function \code{summary} can be used to obtain and print a summary of the underlying glm outcome model.
+#' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
+#' the underlying \code{glm} model.
 #'
 #' An object of class \code{"ipweighting"} is a list containing the following:
 #'
@@ -42,7 +43,7 @@ setClass("summary.ipweighting")
 #'  \tab \cr
 #'  \code{weights} \tab the estimated IP weights. \cr
 #'  \tab \cr
-#'  \code{ATE} \tab the estimated average treatment effect. \cr
+#'  \code{ATE} \tab the estimated average treatment effect (risk difference). \cr
 #'  \tab \cr
 #'  \code{ATE.summary} \tab a data frame containing the ATE, SE, and 95\% CI of the ATE. \cr
 #' }

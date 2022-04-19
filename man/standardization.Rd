@@ -36,7 +36,8 @@ NOTE: if this is changed, the coefficient for treatment may not accurately repre
 \value{
 \code{standardization} returns an object of \code{\link[base::class]{class} "standardization"}.
 
-The function \code{summary} can be used to obtain and print a summary of the underlying glm outcome model.
+The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
+the underlying \code{glm} model.
 
 An object of class \code{"standardization"} is a list containing the following:
 
@@ -49,16 +50,18 @@ An object of class \code{"standardization"} is a list containing the following:
  \tab \cr
  \code{ATE} \tab the estimated average treatment effect. \cr
  \tab \cr
- \code{ATE.summary} \tab a data frame containing the ATE, SE, and 95\% CI of the ATE. \cr
+ \code{ATE.summary} \tab a data frame containing estimates of the treatment effect of the observed,
+ counterfactuals, and risk metrics. \cr
 }
 }
 \description{
 `standardization` uses a standard \code{\link[stats:glm]{glm}} linear model to perform parametric standardization
-by adjusting bias through including all confounders as covariates. The coefficient of treatment is the estimated
-average causal effect.
+by adjusting bias through including all confounders as covariates. The model will calculate during training both the risk diference
+and the risk ratio. Both can be accessed from the model as well as estimates of the couterfactuals of treatment.
 }
 \examples{
 library(causaldata)
+
 data(nhefs)
 nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
@@ -72,5 +75,8 @@ init_params(wt82_71, qsmk,
 
 # model using all defaults
 model <- standardization(data = nhefs.nmv)
+print(model)
 summary(model)
+print(model$ATE.summary)
+print(model$ATE.summary$Estimate[[2]] - model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
 }

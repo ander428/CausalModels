@@ -1,9 +1,11 @@
 #' @exportClass outcome_regression
 setClass("outcome_regression")
 
-#' @title Propensity Scores
-#' @description `outcome_regression` builds a logistic regression with the target as the treatment variable
-#' and the covariates as the independent variables.
+#' @title Outcome Regression
+#' @description `outcome_regression` builds a linear model using all covariates. The treatment effects are stratified
+#' within the levels of the covariates. The model will automatically provide all discrete covariates in a contrast matrix.
+#' To view estimated change in treatment effect from continuous variables, a list called \code{contrasts}, needs to be given
+#' with specific values to estimate. A vector of values can be given for any particualar continuous variable.
 #'
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[init_params]{init_params}}.
@@ -12,13 +14,17 @@ setClass("outcome_regression")
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #' @param family the family to be used in the general linear model.
-#' By default, this is set to \code{\link[stats:binomial]{binomial}}
-#' NOTE: if this is changed, the outcome of the model may not be the probabilities and the results will not be valid.
-#' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
+#' By default, this is set to \code{\link[stats:gaussian]{gaussian}}.
+#' NOTE: if this is changed, the assumptions about the model output may be incorrect and may not provide
+#' accurate treatment effects.
+#' @param contrasts a list of continuous covariates and values in the model to be included in the contrast matrix
+#' (e.g. \code{list(age = c(18, 25, 40), weight = c(90, 159))}).
+#' @param ... additional arguments that may be passed to the underlying \code{\link[multcomp:glht]{glht}} model.
 #'
 #' @returns \code{outcome_regression} returns an object of \code{\link[base::class]{class} "outcome_regression"}
 #'
-#' The function \code{summary} can be used to obtain and print a summary of the underlying glm model.
+#' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
+#' the underlying \code{glht} model.
 #'
 #' An object of class \code{"outcome_regression"} is a list containing the following:
 #'
@@ -27,9 +33,11 @@ setClass("outcome_regression")
 #'  \tab \cr
 #'  \code{formula} \tab the formula used in the model. \cr
 #'  \tab \cr
-#'  \code{model} \tab the underlying glm model. \cr
+#'  \code{model} \tab the underlying glht model. \cr
 #'  \tab \cr
-#'  \code{p.scores} \tab the estimated propensity scores.\cr
+#'  \code{ATE} \tab estimated change average treatment effects within each strata \cr
+#'  \tab \cr
+#'  \code{ATE.summary} \tab a more detailed summary of the ATE estimations from glht. \cr
 #' }
 #'
 #' @export
@@ -49,10 +57,13 @@ setClass("outcome_regression")
 #'             covariates = confounders,
 #'             data = nhefs.nmv)
 #'
-#' p.score <- outcome_regression(nhefs.nmv)
-#' p.score
+#' out.mod <- outcome_regression(nhefs.nmv, contrasts = list(age = c(21, 55), smokeintensity = c(5, 20, 40)))
+#' print(out.mod)
+#' summary(out.mod)
+#' head(data.frame(preds=predict(out.mod)))
 
-outcome_regression <- function(data, f = NA, contrasts = list(), simple = pkg.env$simple, ...) {
+outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
+                               family = gaussian(), contrasts = list(),  ...) {
   check_init()
 
   # grab function parameters
@@ -76,7 +87,7 @@ outcome_regression <- function(data, f = NA, contrasts = list(), simple = pkg.en
   ATE <- NA
   ATE.summary <- NA
 
-  model <- glm(f, data=data)
+  model <- glm(f, data=data, family = family, ...)
   model$call$formula <- f
 
   # grab and divide model matrix
