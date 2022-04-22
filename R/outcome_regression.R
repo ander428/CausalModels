@@ -1,6 +1,3 @@
-#' @exportClass outcome_regression
-setClass("outcome_regression")
-
 #' @title Outcome Regression
 #' @description `outcome_regression` builds a linear model using all covariates. The treatment effects are stratified
 #' within the levels of the covariates. The model will automatically provide all discrete covariates in a contrast matrix.
@@ -8,7 +5,7 @@ setClass("outcome_regression")
 #' with specific values to estimate. A vector of values can be given for any particualar continuous variable.
 #'
 #' @param data a data frame containing the variables in the model.
-#' This should be the same data used in \code{\link[init_params]{init_params}}.
+#' This should be the same data used in \code{\link[=init_params]{init_params}}.
 #' @param f (optional) an object of class "formula" that overrides the default parameter
 #' @param simple a boolean indicator to build default formula with interactions.
 #' If true, interactions will be excluded. If false, interactions will be included. By
@@ -21,7 +18,7 @@ setClass("outcome_regression")
 #' (e.g. \code{list(age = c(18, 25, 40), weight = c(90, 159))}).
 #' @param ... additional arguments that may be passed to the underlying \code{\link[multcomp:glht]{glht}} model.
 #'
-#' @returns \code{outcome_regression} returns an object of \code{\link[base::class]{class} "outcome_regression"}
+#' @returns \code{outcome_regression} returns an object of \code{\link[base:class]{class} "outcome_regression"}
 #'
 #' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 #' the underlying \code{glht} model.
@@ -57,7 +54,8 @@ setClass("outcome_regression")
 #'             covariates = confounders,
 #'             data = nhefs.nmv)
 #'
-#' out.mod <- outcome_regression(nhefs.nmv, contrasts = list(age = c(21, 55), smokeintensity = c(5, 20, 40)))
+#' out.mod <- outcome_regression(nhefs.nmv, contrasts = list(age = c(21, 55),
+#'                               smokeintensity = c(5, 20, 40)))
 #' print(out.mod)
 #' summary(out.mod)
 #' head(data.frame(preds=predict(out.mod)))
@@ -153,21 +151,16 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
 }
 
 #' @export
-print.outcome_regression <- function(x) {
-  print(x$model)
+print.outcome_regression <- function(x, ...) {
+  print(x$model, ...)
 }
 
 #' @export
-summary.outcome_regression <- function(x) {
-  summary(x$model)
+summary.outcome_regression <- function(object, ...) {
+  summary(object$model, ...)
 }
 
 #' @export
-predict.outcome_regression <- function(x, newdata=NULL) {
-  if(is.null(newdata)) {
-    return(predict(x$model$model))
-  }
-  else {
-    return(predict(x$model$model, newdata=newdata))
-  }
+predict.outcome_regression <- function(object, ...) {
+  return(predict(object$model$model, ...))
 }

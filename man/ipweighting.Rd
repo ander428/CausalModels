@@ -18,7 +18,7 @@ ipweighting(
 }
 \arguments{
 \item{data}{a data frame containing the variables in the model.
-This should be the same data used in \code{\link[init_params]{init_params}}.}
+This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
@@ -44,7 +44,7 @@ the numerator will still be modeled.}
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
-\code{ipweighting} returns an object of \code{\link[base::class]{class} "ipweighting"}.
+\code{ipweighting} returns an object of \code{\link[base:class]{class} "ipweighting"}.
 
 The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 the underlying \code{glm} model.
@@ -66,7 +66,7 @@ An object of class \code{"ipweighting"} is a list containing the following:
 }
 }
 \description{
-`ipweighting` uses the \code{\link[propensity_scores]{propensity_scores}} function to generate inverse probability
+`ipweighting` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
 weights. The weights can either be standardized weights or non-standardized weights. The weights are used to train a
 general linear model whose coefficient for treatment represents the average treatment effect on the additive scale.
 }

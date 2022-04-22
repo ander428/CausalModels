@@ -18,7 +18,7 @@ propensity_matching(
 }
 \arguments{
 \item{data}{a data frame containing the variables in the model.
-This should be the same data used in \code{\link[init_params]{init_params}}.}
+This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
@@ -43,10 +43,10 @@ scores. Must be a decimal between 0 and 1. By default, this is set to 0.1. This 
 \item{quant}{a boolean indicator to specify the type of stratification. If true (default), the model will stratify by
 percentiles. If false, the scores will be grouped by a range of their raw values. This option is ignored for standardization.}
 
-\item{...}{additional arguments that may be passed to the underlying \code{\link[propensity_scores]{propensity_scores}} function.}
+\item{...}{additional arguments that may be passed to the underlying \code{\link[=propensity_scores]{propensity_scores}} function.}
 }
 \value{
-\code{propensity_matching} returns an object of \code{\link[base::class]{class} "propensity_matching"}
+\code{propensity_matching} returns an object of \code{\link[base:class]{class} "propensity_matching"}
 
 The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with the underlying \code{glht} or
 \code{standardization} model.
@@ -70,9 +70,9 @@ An object of class \code{"propensity_matching"} is a list containing the followi
 \description{
 `propensity_matching` uses either stratification or standardization to model an outcome
 conditional on the propensity scores. In stratification, the model will break the propensity scores
-into groups and output a \code{\link[multcomp::glht]{glht}} model based off a contrast matrix which
+into groups and output a \code{\link[multcomp:glht]{glht}} model based off a contrast matrix which
 estimates the change in average causal effect within groups of propensity scores. In standardization,
-the model will output a \code{\link[standardization]{standardization}} model that conditions on the
+the model will output a \code{\link[=standardization]{standardization}} model that conditions on the
 propensity strata rather than the covariates. The model can also predict the expected outcome.
 }
 \examples{

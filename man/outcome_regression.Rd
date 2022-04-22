@@ -15,7 +15,7 @@ outcome_regression(
 }
 \arguments{
 \item{data}{a data frame containing the variables in the model.
-This should be the same data used in \code{\link[init_params]{init_params}}.}
+This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
@@ -34,7 +34,7 @@ accurate treatment effects.}
 \item{...}{additional arguments that may be passed to the underlying \code{\link[multcomp:glht]{glht}} model.}
 }
 \value{
-\code{outcome_regression} returns an object of \code{\link[base::class]{class} "outcome_regression"}
+\code{outcome_regression} returns an object of \code{\link[base:class]{class} "outcome_regression"}
 
 The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 the underlying \code{glht} model.
@@ -74,7 +74,8 @@ init_params(wt82_71, qsmk,
             covariates = confounders,
             data = nhefs.nmv)
 
-out.mod <- outcome_regression(nhefs.nmv, contrasts = list(age = c(21, 55), smokeintensity = c(5, 20, 40)))
+out.mod <- outcome_regression(nhefs.nmv, contrasts = list(age = c(21, 55),
+                              smokeintensity = c(5, 20, 40)))
 print(out.mod)
 summary(out.mod)
 head(data.frame(preds=predict(out.mod)))

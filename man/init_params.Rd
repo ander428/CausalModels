@@ -13,6 +13,8 @@ init_params(outcome, treatment, covariates, data, simple = F)
 
 \item{covariates}{a list/vector of covariate names to be use for confounding adjustment.}
 
+\item{data}{a data frame containing the variables in the model.}
+
 \item{simple}{a boolean indicator to build default formula with interactions.
 If true, interactions will be excluded. If false, interactions will be included. By
 default, simple is set to false.}
@@ -20,8 +22,4 @@ default, simple is set to false.}
 \description{
 This function is required to be run first before any other function can run.
 This will set within the package the global outcome, treatment, and covariate functions for each model to use.
-}
-\examples{
-#this is example code of the function
-hello()
 }

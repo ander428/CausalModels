@@ -1,6 +1,3 @@
-#' @exportClass iv_est
-setClass("iv_est")
-
 #' @title Standard Instrumental Variable Estimator
 #' @description `iv_est` calculates the standard IV estimand using the conditional means on a given instrumental variable.
 #'
@@ -8,7 +5,7 @@ setClass("iv_est")
 #' It is assumed the second level is the positive level, i.e., the binary equivalent of the second factor level should be 1
 #' and the first should be 0.
 #' @param data a data frame containing the variables in the model.
-#' This should be the same data used in \code{\link[init_params]{init_params}}.
+#' This should be the same data used in \code{\link[=init_params]{init_params}}.
 #'
 #' @returns \code{iv_est} returns a double value representing the standard IV estimate.
 #'

@@ -1,16 +1,13 @@
-#' @exportClass propensity_matching
-setClass("propensity_matching")
-
 #' @title Propensity Matching
 #' @description `propensity_matching` uses either stratification or standardization to model an outcome
 #' conditional on the propensity scores. In stratification, the model will break the propensity scores
-#' into groups and output a \code{\link[multcomp::glht]{glht}} model based off a contrast matrix which
+#' into groups and output a \code{\link[multcomp:glht]{glht}} model based off a contrast matrix which
 #' estimates the change in average causal effect within groups of propensity scores. In standardization,
-#' the model will output a \code{\link[standardization]{standardization}} model that conditions on the
+#' the model will output a \code{\link[=standardization]{standardization}} model that conditions on the
 #' propensity strata rather than the covariates. The model can also predict the expected outcome.
 #'
 #' @param data a data frame containing the variables in the model.
-#' This should be the same data used in \code{\link[init_params]{init_params}}.
+#' This should be the same data used in \code{\link[=init_params]{init_params}}.
 #' @param f (optional) an object of class "formula" that overrides the default parameter
 #' @param simple a boolean indicator to build default formula with interactions.
 #' If true, interactions will be excluded. If false, interactions will be included. By
@@ -27,9 +24,9 @@ setClass("propensity_matching")
 #' scores. Must be a decimal between 0 and 1. By default, this is set to 0.1. This option is ignored for standardization.
 #' @param quant a boolean indicator to specify the type of stratification. If true (default), the model will stratify by
 #' percentiles. If false, the scores will be grouped by a range of their raw values. This option is ignored for standardization.
-#' @param ... additional arguments that may be passed to the underlying \code{\link[propensity_scores]{propensity_scores}} function.
+#' @param ... additional arguments that may be passed to the underlying \code{\link[=propensity_scores]{propensity_scores}} function.
 #'
-#' @returns \code{propensity_matching} returns an object of \code{\link[base::class]{class} "propensity_matching"}
+#' @returns \code{propensity_matching} returns an object of \code{\link[base:class]{class} "propensity_matching"}
 #'
 #' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with the underlying \code{glht} or
 #' \code{standardization} model.
@@ -189,7 +186,7 @@ propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores 
   else if(type == "stdm") {
     model.f <- build_formula(out = pkg.env$outcome, tr=pkg.env$treatment,
                              cov=c("p.scores"), simple=simple, data = cbind(data, p.scores))
-    model <- stdm(f = model.f, data = cbind(data, p.scores))
+    model <- standardization(f = model.f, data = cbind(data, p.scores))
 
     call <- model$call
     call$formula <- model.f
@@ -205,35 +202,25 @@ propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores 
 }
 
 #' @export
-print.propensity_matching <- function(x) {
+print.propensity_matching <- function(x, ...) {
   if(x$type == "strata" || x$type == "stdm") {
-    print(x$model)
+    print(x$model, ...)
   }
 }
 
 #' @export
-summary.propensity_matching <- function(x) {
-  if(x$type == "strata" || x$type == "stdm") {
-    summary(x$model)
+summary.propensity_matching <- function(object, ...) {
+  if(object$type == "strata" || object$type == "stdm") {
+    summary(object$model, ...)
   }
 }
 
 #' @export
-predict.propensity_matching <- function(x, newdata=NULL) {
-  if(is.null(newdata)) {
-    if(x$type == "strata") {
-      return(predict(x$model$model))
-    }
-    else if(x$type == "stdm") {
-      return(predict(x$model))
-    }
+predict.propensity_matching <- function(object, ...) {
+  if(object$type == "strata") {
+    return(predict(object$model$model, ...))
   }
-  else {
-    if(x$type == "strata") {
-      return(predict(x$model$model, newdata=newdata))
-    }
-    else if(x$type == "stdm") {
-      return(predict(x$model, newdata=newdata))
-    }
+  else if(object$type == "stdm") {
+    return(predict(object$model, ...))
   }
 }

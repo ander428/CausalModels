@@ -9,17 +9,12 @@ standardization(
   f = NA,
   family = gaussian(),
   simple = pkg.env$simple,
-  p.f = NA,
-  p.simple = pkg.env$simple,
-  p.family = binomial(),
-  p.scores = NA,
-  SW = T,
   ...
 )
 }
 \arguments{
 \item{data}{a data frame containing the variables in the model.
-This should be the same data used in \code{\link[init_params]{init_params}}.}
+This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
@@ -34,7 +29,7 @@ NOTE: if this is changed, the coefficient for treatment may not accurately repre
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
-\code{standardization} returns an object of \code{\link[base::class]{class} "standardization"}.
+\code{standardization} returns an object of \code{\link[base:class]{class} "standardization"}.
 
 The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 the underlying \code{glm} model.
@@ -78,5 +73,6 @@ model <- standardization(data = nhefs.nmv)
 print(model)
 summary(model)
 print(model$ATE.summary)
-print(model$ATE.summary$Estimate[[2]] - model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
+print(model$ATE.summary$Estimate[[2]] -
+      model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
 }

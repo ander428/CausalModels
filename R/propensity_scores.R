@@ -1,12 +1,9 @@
-#' @exportClass propensity_scores
-setClass("propensity_scores")
-
 #' @title Propensity Scores
 #' @description `propensity_scores` builds a logistic regression with the target as the treatment variable
 #' and the covariates as the independent variables.
 #'
 #' @param data a data frame containing the variables in the model.
-#' This should be the same data used in \code{\link[init_params]{init_params}}.
+#' This should be the same data used in \code{\link[=init_params]{init_params}}.
 #' @param f (optional) an object of class "formula" that overrides the default parameter
 #' @param simple a boolean indicator to build default formula with interactions.
 #' If true, interactions will be excluded. If false, interactions will be included. By
@@ -16,7 +13,7 @@ setClass("propensity_scores")
 #' NOTE: if this is changed, the outcome of the model may not be the probabilities and the results will not be valid.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
-#' @returns \code{propensity_scores} returns an object of \code{\link[base::class]{class} "propensity_scores"}
+#' @returns \code{propensity_scores} returns an object of \code{\link[base:class]{class} "propensity_scores"}
 #'
 #' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 #' the underlying \code{glm} model.
@@ -86,21 +83,16 @@ propensity_scores <- function(data, f = NA,  simple = pkg.env$simple, family = b
 }
 
 #' @export
-print.propensity_scores <- function(x) {
-  print(x$model)
+print.propensity_scores <- function(x, ...) {
+  print(x$model, ...)
 }
 
 #' @export
-summary.propensity_scores <- function(x) {
-  summary(x$model)
+summary.propensity_scores <- function(object, ...) {
+  summary(object$model, ...)
 }
 
 #' @export
-predict.propensity_scores <- function(x, newdata=NULL) {
-  if(is.null(newdata)) {
-    return(predict(x$model, type = 'response'))
-  }
-  else{
-    return(predict(x$model, newdata=newdata, type = 'response'))
-  }
+predict.propensity_scores <- function(object, ...) {
+  return(predict(object$model, type = 'response', ...))
 }

@@ -5,15 +5,13 @@
 #' @param outcome the outcome variable of interest (must be continuous).
 #' @param treatment the treatment with the causal effect of interest on the outcome.
 #' @param covariates  a list/vector of covariate names to be use for confounding adjustment.
+#' @param data a data frame containing the variables in the model.
 #' @param simple a boolean indicator to build default formula with interactions.
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #'
 #' @export
 #'
-#' @examples
-#' #this is example code of the function
-#' hello()
 init_params <- function(outcome, treatment, covariates, data, simple = F) {
   params <- as.list(match.call()[-1])
   cov <- params$cov

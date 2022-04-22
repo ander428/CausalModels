@@ -12,7 +12,7 @@ It is assumed the second level is the positive level, i.e., the binary equivalen
 and the first should be 0.}
 
 \item{data}{a data frame containing the variables in the model.
-This should be the same data used in \code{\link[init_params]{init_params}}.}
+This should be the same data used in \code{\link[=init_params]{init_params}}.}
 }
 \value{
 \code{iv_est} returns a double value representing the standard IV estimate.

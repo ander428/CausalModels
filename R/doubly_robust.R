@@ -1,5 +1,5 @@
 #' @title Parametric IP Weighting
-#' @description `ipweighting` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
+#' @description `doubly_robust` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
 #' weights. The weights can either be standardized weights or non-standardized weights. The weights are used to train a
 #' general linear model whose coefficient for treatment represents the average treatment effect on the additive scale.
 #'
@@ -8,6 +8,9 @@
 #' @param f (optional) an object of class "formula" that overrides the default parameter
 #' @param family the family to be used in the general linear model.
 #' By default, this is set to \code{\link[stats:gaussian]{gaussian}}.
+#' @param simple a boolean indicator to build default formula with interactions.
+#' If true, interactions will be excluded. If false, interactions will be included. By
+#' default, simple is set to false.
 #' @param p.f (optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 #' weighting function.
 #' @param p.simple a boolean indicator to build default formula with interactions for the propensity models.
@@ -18,15 +21,14 @@
 #' By default, this is set to \code{\link[stats:gaussian]{binomial}}.
 #' @param p.scores (optional) use calculated propensity scores for the weights. If using standardized weights,
 #' the numerator will still be modeled.
-#' @param SW a boolean indicator to indicate the use of standardized weights. By default, this is set to true.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
-#' @returns \code{ipweighting} returns an object of \code{\link[base:class]{class} "ipweighting"}.
+#' @returns \code{doubly_robust} returns an object of \code{\link[base:class]{class} "doubly_robust"}.
 #'
 #' The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 #' the underlying \code{glm} model.
 #'
-#' An object of class \code{"ipweighting"} is a list containing the following:
+#' An object of class \code{"doubly_robust"} is a list containing the following:
 #'
 #' \tabular{ll}{
 #'  \code{call} \tab the matched call. \cr
@@ -58,88 +60,37 @@
 #'             data = nhefs.nmv)
 #'
 #' # model using all defaults
-#' model <- ipweighting(data = nhefs.nmv)
+#' model <- doubly_robust(data = nhefs.nmv)
 #' summary(model)
 #'
 #' # Model using calculated propensity scores and manual outcome formula
 #' p.scores <- propensity_scores(nhefs.nmv)$p.scores
-#' model <- ipweighting(wt82_71 ~ qsmk, p.scores = p.scores, data = nhefs.nmv)
+#' model <- doubly_robust(wt82_71 ~ qsmk, p.scores = p.scores, data = nhefs.nmv)
 #' summary(model)
 
-ipweighting <- function(data, f = NA, family = gaussian(), p.f = NA, p.simple = pkg.env$simple,
-                        p.family = binomial(), p.scores = NA, SW = T, ...) {
+doubly_robust <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple,
+                          p.f = NA, p.simple = pkg.env$simple, p.family = binomial(), p.scores = NA, ...) {
 
   check_init()
 
   # grab function parameters
   params <- as.list(match.call()[-1])
 
-  # if user gives an outcome formula
-  if(is.na(as.character(f))[1]) {
-    f <- as.formula(paste(pkg.env$outcome, "~", pkg.env$treatment))
-  }
+  # generate both models
+  prop.model <- propensity_scores(f=p.f, data = data, family=p.family, simple=p.simple)
+  std.model <- standardization(f=f, data = data, simple = simple, family = family)
 
-  # if user does not give propensity scores
-  if(anyNA(p.scores)) {
-    if(!is.na(as.character(p.f))[1]) {
-      p.scores <- propensity_scores(p.f, data = data, family = p.family)$p.scores
-    }
-    # if no given propensity formula
-    else {
-      if(p.simple != pkg.env$simple) {
-        p.f <- build_formula(out = pkg.env$treatment, cov = pkg.env$covariates,
-                             data = data, simple = p.simple)
-      }
-      # use default
-      else {
-        p.f <- formula(pkg.env$f_tr)
-      }
+  est <- doubly_robust_est(std.model, prop.model, data)
 
-      p.scores <- propensity_scores(p.f, data = data, family = p.family)$p.scores
-    }
-
-  }
-  # if user does give propensity scores
-  else {
-    if(!is.na(as.character(p.f))[1]) {
-      message("Ignoring given propensity formula since propensity scores have been given.")
-    }
-    message("Using given propensity scores.")
-  }
-
-  if(SW) {
-    numer_scores <- propensity_scores(as.formula(paste(pkg.env$treatment,"~1")), family = binomial(), data = data)$p.scores
-
-    data$sw <- numer_scores / p.scores
-  }
-
-  else {
-    data$sw <- 1 / p.scores
-  }
-
-  model <- glm(f, data=data, weights=sw, family = family, ...)
-  model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
-
-  # calculate causal stats
-  beta <- coef(model)[[2]]
-  SE <- coef(summary(model))[2,2]
-  ATE <- data.frame(
-    "Beta" = beta,
-    "SE" = SE,
-    conf_int(beta, SE),
-    check.names=FALSE
-  )
-  row.names(ATE) <- pkg.env$treatment
-
-  output <- list("call" = model$call, "formula" = model$call$formula, "model" = model,
-                 "weights" = data$sw, "ATE" = beta, "ATE.summary" = ATE)
-
-  class(output) <- "ipweighting"
-  return(output)
+  # output <- list("call" = model$call, "formula" = model$call$formula, "model" = model,
+  #                "weights" = data$sw, "ATE" = beta, "ATE.summary" = ATE)
+  #
+  # class(output) <- "doubly_robust"
+  return(est)
 }
 
 #' @export
-print.ipweighting <- function(x, ...) {
+print.doubly_robust <- function(x, ...) {
   print(x$model, ...)
   cat("\r\n")
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
@@ -149,15 +100,15 @@ print.ipweighting <- function(x, ...) {
 }
 
 #' @export
-summary.ipweighting <- function(object, ...) {
+summary.doubly_robust <- function(object, ...) {
   s <- summary(object$model, ...)
   s$ATE <- object$ATE.summary
-  class(s) <- "summary.ipweighting"
+  class(s) <- "summary.doubly_robust"
   return(s)
 }
 
 #' @export
-print.summary.ipweighting <- function(x, ...) {
+print.summary.doubly_robust <- function(x, ...) {
   class(x) <- "summary.glm"
   print(x, ...)
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
@@ -166,7 +117,15 @@ print.summary.ipweighting <- function(x, ...) {
 }
 
 #' @export
-predict.ipweighting <- function(object, ...) {
+predict.doubly_robust <- function(object, ...) {
   return(predict(object$model, ...))
 }
 
+doubly_robust_est <- function(std.mod, prop.mod, data) {
+  S <- predict(std.mod)
+  W <- prop.mod$p.scores
+  n <- length(S)
+  tr <- as.numeric(levels(data[[pkg.env$treatment]]))[data[[pkg.env$treatment]]]
+
+  return(sum(S - ((tr * (data[[pkg.env$outcome]]-S)) / W)) / n)
+}

@@ -14,7 +14,7 @@ propensity_scores(
 }
 \arguments{
 \item{data}{a data frame containing the variables in the model.
-This should be the same data used in \code{\link[init_params]{init_params}}.}
+This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
@@ -29,7 +29,7 @@ NOTE: if this is changed, the outcome of the model may not be the probabilities 
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
-\code{propensity_scores} returns an object of \code{\link[base::class]{class} "propensity_scores"}
+\code{propensity_scores} returns an object of \code{\link[base:class]{class} "propensity_scores"}
 
 The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 the underlying \code{glm} model.
