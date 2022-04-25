@@ -123,6 +123,7 @@ print.standardization <- function(x, ...) {
   print(x$model, ...)
   cat("\r\n")
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
+  print(x$ATE)
   cat(x$ATE, "\r\n")
 }
 

@@ -46,7 +46,6 @@ init_params <- function(outcome, treatment, covariates, data, simple = F) {
     assign('covariates', as.character(params$covariates)[-1], pkg.env)
   }
 
-  assign('data', data, pkg.env)
   assign('simple', simple, pkg.env)
   assign('p_simple', simple, pkg.env)
 

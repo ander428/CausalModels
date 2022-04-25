@@ -2,13 +2,16 @@
 % Please edit documentation in R/doubly_robust.R
 \name{doubly_robust}
 \alias{doubly_robust}
-\title{Parametric IP Weighting}
+\title{Doubly Robust Model}
 \usage{
 doubly_robust(
   data,
+  out.mod = NULL,
+  p.mod = NULL,
   f = NA,
   family = gaussian(),
   simple = pkg.env$simple,
+  scores = NA,
   p.f = NA,
   p.simple = pkg.env$simple,
   p.family = binomial(),
@@ -20,6 +23,12 @@ doubly_robust(
 \item{data}{a data frame containing the variables in the model.
 This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
+\item{out.mod}{(optional) a regression model that predicts the outcome. NOTE: the model given
+must be compatible with the \code{\link[stats:predict]{predict}} generic function.}
+
+\item{p.mod}{(optional) a propensity model that predicts the probability of treatment. NOTE: the model given
+must be compatible with the \code{\link[stats:predict]{predict}} generic function.}
+
 \item{f}{(optional) an object of class "formula" that overrides the default parameter}
 
 \item{family}{the family to be used in the general linear model.
@@ -28,6 +37,8 @@ By default, this is set to \code{\link[stats:gaussian]{gaussian}}.}
 \item{simple}{a boolean indicator to build default formula with interactions.
 If true, interactions will be excluded. If false, interactions will be included. By
 default, simple is set to false.}
+
+\item{scores}{(optional) use calculated outcome estimates.}
 
 \item{p.f}{(optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 weighting function.}
@@ -40,37 +51,43 @@ NOTE: if this is changed, the coefficient for treatment may not accurately repre
 \item{p.family}{the family to be used in the underlying propensity model.
 By default, this is set to \code{\link[stats:gaussian]{binomial}}.}
 
-\item{p.scores}{(optional) use calculated propensity scores for the weights. If using standardized weights,
-the numerator will still be modeled.}
+\item{p.scores}{(optional) use calculated propensity scores.}
 
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
-\code{doubly_robust} returns an object of \code{\link[base:class]{class} "doubly_robust"}.
+\code{doubly_robust} returns an object of \code{\link[base:class]{class}} "doubly_robust".
 
 The functions \code{print}, \code{summary}, and \code{predict} can be used to interact with
 the underlying \code{glm} model.
 
 An object of class \code{"doubly_robust"} is a list containing the following:
-
 \tabular{ll}{
- \code{call} \tab the matched call. \cr
+ \code{out.call} \tab the matched call of the outcome model. \cr
  \tab \cr
- \code{formula} \tab the formula used in the model. \cr
+ \code{p.call} \tab the matched call of the propensity model. \cr
  \tab \cr
- \code{model} \tab the underlying glm model. \cr
+ \code{out.model} \tab the underlying outcome model. \cr
  \tab \cr
- \code{weights} \tab the estimated IP weights. \cr
+ \code{p.model} the underlying propensity model. \cr
+ \tab \cr
+ \code{y_hat} \tab the estimated outcome values. \cr
+ \tab \cr
+ \code{p.scores} \tab the estimated propensity scores. \cr
  \tab \cr
  \code{ATE} \tab the estimated average treatment effect (risk difference). \cr
  \tab \cr
- \code{ATE.summary} \tab a data frame containing the ATE, SE, and 95\% CI of the ATE. \cr
+ \code{data} \tab the data frame used to train the model. \cr
 }
 }
 \description{
-`doubly_robust` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
-weights. The weights can either be standardized weights or non-standardized weights. The weights are used to train a
-general linear model whose coefficient for treatment represents the average treatment effect on the additive scale.
+\code{`doubly_robust`} trains both an outcome model and a propensity model to generate predictions
+for the outcome and probability of treatment respectively. By default, the model uses
+\code{\link[=standardization]{standardization}} and \code{\link[=propensity_scores]{propensity_scores}} to form a
+doubly-robust model between standardization and IP weighting. Alternatively, any outcome and treatment
+models can be provided instead, but must be compatible with the \code{\link[stats:predict]{predict}} generic function in R.
+Since many propensity models may not predict probabilities without additional arguments into the
+predict function, the predictions themselves can be given for both the outcome and propensity scores.
 }
 \examples{
 library(causaldata)
@@ -89,8 +106,15 @@ init_params(wt82_71, qsmk,
 model <- doubly_robust(data = nhefs.nmv)
 summary(model)
 
-# Model using calculated propensity scores and manual outcome formula
-p.scores <- propensity_scores(nhefs.nmv)$p.scores
-model <- doubly_robust(wt82_71 ~ qsmk, p.scores = p.scores, data = nhefs.nmv)
-summary(model)
+# use alternative outcome model
+out.mod <- propensity_matching(data = nhefs.nmv)
+db.model <- doubly_robust(out.mod = out.mod,
+                          data = nhefs.nmv)
+db.model
+
+# give calculated outcome predictions and give formula for propensity scores
+db.model <- doubly_robust(scores = predict(out.mod),
+                          p.f = qsmk ~ sex + race + age,
+                          data = nhefs.nmv)
+db.model
 }
