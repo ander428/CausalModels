@@ -91,10 +91,28 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   # grab and divide model matrix
   temp_map <- data.frame(model.matrix(model))
   num_vars <- sapply(temp_map, function(x) {length(unique(x)) > 2})
-  disc <- temp_map[!num_vars][-1:-2]  # exclude intercept and treatment
-  continuous <- temp_map[unlist(lapply(names(num_vars), function(x) {grepl(pkg.env$treatment, x, fixed = T)}))][-1]
-  continuous_names <- names(continuous)
+  disc <- temp_map[!num_vars]
+  disc <- disc[,-c(1,ncol(disc))]# exclude intercept and treatment
+  has_interaction <- unlist(lapply(names(num_vars), function(x) {grepl(pkg.env$treatment,
+                                                                       x, fixed = T)}))
+  continuous <- temp_map[has_interaction][-1]
 
+
+  # if there are no interactions, use original variables
+  if(ncol(continuous) == 0) {
+    continuous <- temp_map[num_vars]
+  }
+  # if only sum interactions, use original for those without one
+  else {
+    no_interaction <- list()
+    for(i in 1:length(num_vars)) {
+      no_interaction[i] <- (!has_interaction[[i]] && num_vars[[i]] &&
+                              !any(grepl(names(num_vars)[[i]], names(continuous))))
+    }
+    continuous <- cbind(continuous, temp_map[unlist(no_interaction)])
+  }
+
+  continuous_names <- names(continuous)
 
   cont_input <- list()
   for(i in 1:length(names(disc))) {
@@ -130,12 +148,21 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
     for(i in 1:length(contrasts)) {
       name <- names(contrasts[i])
       for(val in contrasts[[i]]) {
-        cont_mat[j, paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], ":", name, sep="")] <- val
+        if(paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2],
+                 ":", name, sep="") %in% colnames(cont_mat)) {
+                   cont_mat[j, paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], ":", name, sep="")] <- val
+        }
+        else if(paste(name, ":", pkg.env$treatment,
+                      levels(data[[pkg.env$treatment]])[2], sep="") %in% colnames(cont_mat)) {
+          cont_mat[j, paste(name, ":", pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], sep="")] <- val
+        }
+        else {
+          cont_mat[j, name] <- val
+        }
         j <- j + 1
       }
     }
   }
-
 
   model <- glht(model, cont_mat)
   call <- model$model$call
