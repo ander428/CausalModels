@@ -20,15 +20,10 @@
 #'
 #' An object of class \code{"propensity_scores"} is a list containing the following:
 #'
-#' \tabular{ll}{
-#'  \code{call} \tab the matched call. \cr
-#'  \tab \cr
-#'  \code{formula} \tab the formula used in the model. \cr
-#'  \tab \cr
-#'  \code{model} \tab the underlying glm model. \cr
-#'  \tab \cr
-#'  \code{p.scores} \tab the estimated propensity scores.\cr
-#' }
+#'  \item{call}{the matched call.}
+#'  \item{formula}{the formula used in the model.}
+#'  \item{model}{the underlying glm model.}
+#'  \item{p.scores}{the estimated propensity scores.}
 #'
 #' @export
 #'

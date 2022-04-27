@@ -62,23 +62,15 @@ The functions \code{print}, \code{summary}, and \code{predict} can be used to in
 the underlying \code{glm} model.
 
 An object of class \code{"doubly_robust"} is a list containing the following:
-\tabular{ll}{
- \code{out.call} \tab the matched call of the outcome model. \cr
- \tab \cr
- \code{p.call} \tab the matched call of the propensity model. \cr
- \tab \cr
- \code{out.model} \tab the underlying outcome model. \cr
- \tab \cr
- \code{p.model} the underlying propensity model. \cr
- \tab \cr
- \code{y_hat} \tab the estimated outcome values. \cr
- \tab \cr
- \code{p.scores} \tab the estimated propensity scores. \cr
- \tab \cr
- \code{ATE} \tab the estimated average treatment effect (risk difference). \cr
- \tab \cr
- \code{data} \tab the data frame used to train the model. \cr
-}
+
+ \item{out.call}{the matched call of the outcome model.}
+ \item{p.call}{the matched call of the propensity model.}
+ \item{out.model}{the underlying outcome model.}
+ \item{p.model}{the underlying propensity model.}
+ \item{y_hat}{the estimated outcome values.}
+ \item{p.scores}{the estimated propensity scores.}
+ \item{ATE}{the estimated average treatment effect (risk difference).}
+ \item{data}{the data frame used to train the model.}
 }
 \description{
 \code{`doubly_robust`} trains both an outcome model and a propensity model to generate predictions

@@ -28,19 +28,12 @@
 #'
 #' An object of class \code{"ipweighting"} is a list containing the following:
 #'
-#' \tabular{ll}{
-#'  \code{call} \tab the matched call. \cr
-#'  \tab \cr
-#'  \code{formula} \tab the formula used in the model. \cr
-#'  \tab \cr
-#'  \code{model} \tab the underlying glm model. \cr
-#'  \tab \cr
-#'  \code{weights} \tab the estimated IP weights. \cr
-#'  \tab \cr
-#'  \code{ATE} \tab the estimated average treatment effect (risk difference). \cr
-#'  \tab \cr
-#'  \code{ATE.summary} \tab a data frame containing the ATE, SE, and 95\% CI of the ATE. \cr
-#' }
+#'  \item{call}{the matched call.}
+#'  \item{formula}{the formula used in the model.}
+#'  \item{model}{the underlying glm model.}
+#'  \item{weights}{the estimated IP weights.}
+#'  \item{ATE}{the estimated average treatment effect (risk difference).}
+#'  \item{ATE.summary}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
 #'
 #' @export
 #'

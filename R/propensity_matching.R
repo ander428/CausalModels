@@ -33,19 +33,12 @@
 #'
 #' An object of class \code{"propensity_matching"} is a list containing the following:
 #'
-#' \tabular{ll}{
-#'  \code{call} \tab the matched call. \cr
-#'  \tab \cr
-#'  \code{formula} \tab the formula used in the model. \cr
-#'  \tab \cr
-#'  \code{model} \tab either the underlying \code{glht} or \code{standardization} model. \cr
-#'  \tab \cr
-#'  \code{p.scores} \tab the estimated propensity scores.\cr
-#'  \tab \cr
-#'  \code{ATE} \tab the estimated average treatment effect (risk difference).\cr
-#'  \tab \cr
-#'  \code{ATE.summary} \tab either a data frame containing the \code{glht} or \code{standardization} summary. \cr
-#' }
+#'  \item{call}{the matched call.}
+#'  \item{formula}{the formula used in the model.}
+#'  \item{model}{either the underlying \code{glht} or \code{standardization} model.}
+#'  \item{p.scores}{the estimated propensity scores}
+#'  \item{ATE}{the estimated average treatment effect (risk difference)}
+#'  \item{ATE.summary}{either a data frame containing the \code{glht} or \code{standardization} summary. }
 #'
 #' @export
 #'

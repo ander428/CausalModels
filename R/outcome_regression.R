@@ -25,17 +25,11 @@
 #'
 #' An object of class \code{"outcome_regression"} is a list containing the following:
 #'
-#' \tabular{ll}{
-#'  \code{call} \tab the matched call. \cr
-#'  \tab \cr
-#'  \code{formula} \tab the formula used in the model. \cr
-#'  \tab \cr
-#'  \code{model} \tab the underlying glht model. \cr
-#'  \tab \cr
-#'  \code{ATE} \tab estimated change average treatment effects within each strata \cr
-#'  \tab \cr
-#'  \code{ATE.summary} \tab a more detailed summary of the ATE estimations from glht. \cr
-#' }
+#'  \item{call}{the matched call.}
+#'  \item{formula}{the formula used in the model.}
+#'  \item{model}{the underlying glht model.}
+#'  \item{ATE}{estimated change average treatment effects within each strata}
+#'  \item{ATE.summary}{a more detailed summary of the ATE estimations from glht. }
 #'
 #' @export
 #'

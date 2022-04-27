@@ -21,18 +21,12 @@
 #'
 #' An object of class \code{"standardization"} is a list containing the following:
 #'
-#' \tabular{ll}{
-#'  \code{call} \tab the matched call. \cr
-#'  \tab \cr
-#'  \code{formula} \tab the formula used in the model. \cr
-#'  \tab \cr
-#'  \code{model} \tab the underlying glm model. \cr
-#'  \tab \cr
-#'  \code{ATE} \tab the estimated average treatment effect. \cr
-#'  \tab \cr
-#'  \code{ATE.summary} \tab a data frame containing estimates of the treatment effect of the observed,
-#'  counterfactuals, and risk metrics. \cr
-#' }
+#' \item{call}{the matched call.}
+#' \item{formula}{the formula used in the model.}
+#' \item{model}{the underlying glm model.}
+#' \item{ATE}{the estimated average treatment effect.}
+#' \item{ATE.summary}{a data frame containing estimates of the treatment effect
+#'  of the observed, counterfactuals, and risk metrics.}
 #'
 #' @export
 #'
