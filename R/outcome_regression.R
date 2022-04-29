@@ -2,7 +2,7 @@
 #' @description `outcome_regression` builds a linear model using all covariates. The treatment effects are stratified
 #' within the levels of the covariates. The model will automatically provide all discrete covariates in a contrast matrix.
 #' To view estimated change in treatment effect from continuous variables, a list called \code{contrasts}, needs to be given
-#' with specific values to estimate. A vector of values can be given for any particualar continuous variable.
+#' with specific values to estimate. A vector of values can be given for any particular continuous variable.
 #'
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[=init_params]{init_params}}.

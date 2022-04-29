@@ -45,8 +45,8 @@ An object of class \code{"standardization"} is a list containing the following:
 }
 \description{
 `standardization` uses a standard \code{\link[stats:glm]{glm}} linear model to perform parametric standardization
-by adjusting bias through including all confounders as covariates. The model will calculate during training both the risk diference
-and the risk ratio. Both can be accessed from the model as well as estimates of the couterfactuals of treatment.
+by adjusting bias through including all confounders as covariates. The model will calculate during training both the risk difference
+and the risk ratio. Both can be accessed from the model as well as estimates of the counterfactuals of treatment.
 }
 \examples{
 library(causaldata)

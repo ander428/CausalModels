@@ -51,7 +51,7 @@ An object of class \code{"outcome_regression"} is a list containing the followin
 `outcome_regression` builds a linear model using all covariates. The treatment effects are stratified
 within the levels of the covariates. The model will automatically provide all discrete covariates in a contrast matrix.
 To view estimated change in treatment effect from continuous variables, a list called \code{contrasts}, needs to be given
-with specific values to estimate. A vector of values can be given for any particualar continuous variable.
+with specific values to estimate. A vector of values can be given for any particular continuous variable.
 }
 \examples{
 library(causaldata)
