@@ -19,6 +19,8 @@
 #' @param p.scores (optional) use calculated propensity scores for the weights. If using standardized weights,
 #' the numerator will still be modeled.
 #' @param SW a boolean indicator to indicate the use of standardized weights. By default, this is set to true.
+#' @param n.boot (optional) an integer value that indicates number of bootstrap iterations to calculate standard error.
+#' If no value is given, the standard error from the underlying linear model will be used.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
 #' @returns \code{ipweighting} returns an object of \code{\link[base:class]{class} "ipweighting"}.
@@ -60,9 +62,10 @@
 #' summary(model)
 
 ipweighting <- function(data, f = NA, family = gaussian(), p.f = NA, p.simple = pkg.env$simple,
-                        p.family = binomial(), p.scores = NA, SW = T, ...) {
+                        p.family = binomial(), p.scores = NA, SW = TRUE, n.boot = 0, ...) {
 
   check_init()
+  data$weights <- rep(1, nrow(data))
 
   # grab function parameters
   params <- as.list(match.call()[-1])
@@ -103,29 +106,63 @@ ipweighting <- function(data, f = NA, family = gaussian(), p.f = NA, p.simple = 
   if(SW) {
     numer_scores <- propensity_scores(as.formula(paste(pkg.env$treatment,"~1")), family = binomial(), data = data)$p.scores
 
-    data$sw <- numer_scores / p.scores
+    data$weights <- numer_scores / p.scores
   }
 
   else {
-    data$sw <- 1 / p.scores
+    data$weights <- 1 / p.scores
   }
 
-  model <- glm(f, data=data, weights=sw, family = family, ...)
-  model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
+  model_func <- function(data, indices, f, family, weights, ...) {
+    if(!anyNA(indices)) {
+      data <- data[indices,]
+    }
 
-  # calculate causal stats
-  beta <- coef(model)[[2]]
-  SE <- coef(summary(model))[2,2]
-  ATE <- data.frame(
-    "Beta" = beta,
-    "SE" = SE,
-    conf_int(beta, SE),
-    check.names=FALSE
-  )
-  row.names(ATE) <- pkg.env$treatment
+    model <- glm(f, weights=weights, data=data, family = family, ...)
+    model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
+
+    return(list("model" = model, "ATE" = coef(model)[[2]]))
+  }
+
+  # build model
+  result <- model_func(data=data, indices=NA, f=f, family=family, weights = data$weights, ...)
+  model <- result$model
+  beta <- 0
+  SE <- 0
+  ATE <- list()
+  if(n.boot > 1) {
+    # build bootstrapped estimates
+    boot_result <- boot(data=data, R=n.boot, f=f, family=family, weights = data$weights,
+                        statistic = function(data, indices, f, family, weights, ...) {
+                          model_func(data, indices, f, family, weights, ...)$ATE
+                        }, ...)
+
+    # calculate 95% CI
+    beta <- boot_result$t0
+    SE <- sd(boot_result$t)
+    ATE <- data.frame(
+      "Beta" = beta,
+      "SE" = SE,
+      conf_int(beta, SE),
+      check.names=FALSE
+    )
+  }
+
+  else {
+    # calculate causal stats
+    beta <- coef(model)[[2]]
+    SE <- coef(summary(model))[2,2]
+    ATE <- data.frame(
+      "Beta" = beta,
+      "SE" = SE,
+      conf_int(beta, SE),
+      check.names=FALSE
+    )
+  }
+
 
   output <- list("call" = model$call, "formula" = model$call$formula, "model" = model,
-                 "weights" = data$sw, "ATE" = beta, "ATE.summary" = ATE)
+                 "weights" = data$weights, "ATE" = beta, "ATE.summary" = ATE)
 
   class(output) <- "ipweighting"
   return(output)
@@ -154,7 +191,7 @@ print.summary.ipweighting <- function(x, ...) {
   class(x) <- "summary.glm"
   print(x, ...)
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
-  print(x$ATE)
+  print(x$ATE, row.names = FALSE)
   cat("\r\n")
 }
 

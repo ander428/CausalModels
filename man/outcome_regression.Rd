@@ -44,7 +44,7 @@ An object of class \code{"outcome_regression"} is a list containing the followin
  \item{call}{the matched call.}
  \item{formula}{the formula used in the model.}
  \item{model}{the underlying glht model.}
- \item{ATE}{estimated change average treatment effects within each strata}
+ \item{ATE}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
  \item{ATE.summary}{a more detailed summary of the ATE estimations from glht. }
 }
 \description{

@@ -12,7 +12,7 @@ propensity_matching(
   p.simple = pkg.env$simple,
   type = "strata",
   grp.width = 0.1,
-  quant = T,
+  quant = TRUE,
   ...
 )
 }
@@ -57,7 +57,7 @@ An object of class \code{"propensity_matching"} is a list containing the followi
  \item{formula}{the formula used in the model.}
  \item{model}{either the underlying \code{glht} or \code{standardization} model.}
  \item{p.scores}{the estimated propensity scores}
- \item{ATE}{the estimated average treatment effect (risk difference)}
+ \item{ATE}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
  \item{ATE.summary}{either a data frame containing the \code{glht} or \code{standardization} summary. }
 }
 \description{

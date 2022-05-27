@@ -37,7 +37,7 @@
 #'  \item{formula}{the formula used in the model.}
 #'  \item{model}{either the underlying \code{glht} or \code{standardization} model.}
 #'  \item{p.scores}{the estimated propensity scores}
-#'  \item{ATE}{the estimated average treatment effect (risk difference)}
+#'  \item{ATE}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
 #'  \item{ATE.summary}{either a data frame containing the \code{glht} or \code{standardization} summary. }
 #'
 #' @export
@@ -63,7 +63,7 @@
 #' head(data.frame(preds=predict(pm.model)))
 
 propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores = NA, p.simple = pkg.env$simple,
-                                type = "strata", grp.width = 0.1, quant = T, ...) {
+                                type = "strata", grp.width = 0.1, quant = TRUE, ...) {
   check_init()
 
   # grab function parameters
@@ -109,7 +109,7 @@ propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores 
     if(quant) { # use percentiles
       # group by propensity percentiles w/ width = grp.width
       quants <- c(quantile(p.scores, probs=seq(0,1,grp.width)))
-      p.grp <- cut(p.scores, breaks=quants, include.lowest = T)
+      p.grp <- cut(p.scores, breaks=quants, include.lowest = TRUE)
 
       # create lookup table for groups
       lookup <- data.frame("n" = table(p.grp), names(quants)[-1])
@@ -164,15 +164,15 @@ propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores 
     # summarize model
     sum_model <- summary(model)$test
 
-    results <- list(
+    results <- data.frame(
       "Estimate" = sum_model$coefficients,
       "Std. Error" = sum_model$sigma,
-      "z value" = sum_model$tstat,
-      "P(>|z|)" = sum_model$pvalues
+      conf_int(sum_model$coefficients, sum_model$sigma),
+      check.names=FALSE
     )
 
     ATE.summary <- cbind(lookup, results)
-    ATE <- ATE.summary[["Estimate"]]
+    ATE <- results
   }
 
   # using standardization
@@ -196,7 +196,14 @@ propensity_matching <- function(data, f = NA, simple = pkg.env$simple, p.scores 
 
 #' @export
 print.propensity_matching <- function(x, ...) {
-  if(x$type == "strata" || x$type == "stdm") {
+  if(x$type == "strata") {
+    cat("\r\n")
+    cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
+    cat("\r\n")
+    print(x$ATE)
+  }
+
+  else if(x$type == "stdm") {
     print(x$model, ...)
   }
 }

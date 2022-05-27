@@ -16,6 +16,7 @@ doubly_robust(
   p.simple = pkg.env$simple,
   p.family = binomial(),
   p.scores = NA,
+  n.boot = 50,
   ...
 )
 }
@@ -53,6 +54,8 @@ By default, this is set to \code{\link[stats:gaussian]{binomial}}.}
 
 \item{p.scores}{(optional) use calculated propensity scores.}
 
+\item{n.boot}{an integer value that indicates number of bootstrap iterations to calculate standard error.}
+
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
@@ -70,6 +73,7 @@ An object of class \code{"doubly_robust"} is a list containing the following:
  \item{y_hat}{the estimated outcome values.}
  \item{p.scores}{the estimated propensity scores.}
  \item{ATE}{the estimated average treatment effect (risk difference).}
+ \item{ATE.summary}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
  \item{data}{the data frame used to train the model.}
 }
 \description{

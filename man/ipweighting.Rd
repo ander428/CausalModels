@@ -12,7 +12,8 @@ ipweighting(
   p.simple = pkg.env$simple,
   p.family = binomial(),
   p.scores = NA,
-  SW = T,
+  SW = TRUE,
+  n.boot = 0,
   ...
 )
 }
@@ -40,6 +41,9 @@ By default, this is set to \code{\link[stats:gaussian]{binomial}}.}
 the numerator will still be modeled.}
 
 \item{SW}{a boolean indicator to indicate the use of standardized weights. By default, this is set to true.}
+
+\item{n.boot}{(optional) an integer value that indicates number of bootstrap iterations to calculate standard error.
+If no value is given, the standard error from the underlying linear model will be used.}
 
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }

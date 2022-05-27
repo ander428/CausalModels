@@ -28,7 +28,7 @@
 #'  \item{call}{the matched call.}
 #'  \item{formula}{the formula used in the model.}
 #'  \item{model}{the underlying glht model.}
-#'  \item{ATE}{estimated change average treatment effects within each strata}
+#'  \item{ATE}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
 #'  \item{ATE.summary}{a more detailed summary of the ATE estimations from glht. }
 #'
 #' @export
@@ -88,7 +88,7 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   disc <- temp_map[!num_vars]
   disc <- disc[,-c(1,ncol(disc))]# exclude intercept and treatment
   has_interaction <- unlist(lapply(names(num_vars), function(x) {grepl(pkg.env$treatment,
-                                                                       x, fixed = T)}))
+                                                                       x, fixed = TRUE)}))
   continuous <- temp_map[has_interaction][-1]
 
 
@@ -161,8 +161,18 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   model <- glht(model, cont_mat)
   call <- model$model$call
 
+  # summarize model
+  sum_model <- summary(model)$test
+
+  results <- data.frame(
+    "Estimate" = sum_model$coefficients,
+    "Std. Error" = sum_model$sigma,
+    conf_int(sum_model$coefficients, sum_model$sigma),
+    check.names=FALSE
+  )
+
   ATE.summary <- summary(model)
-  ATE <- ATE.summary$test$Estimate
+  ATE <- results
 
   output <- list("call" = call, "formula" = call$formula, "model" = model,
                  "ATE" = ATE, "ATE.summary" = ATE.summary)
@@ -173,7 +183,10 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
 
 #' @export
 print.outcome_regression <- function(x, ...) {
-  print(x$model, ...)
+  cat("\r\n")
+  cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
+  cat("\r\n")
+  print(x$ATE)
 }
 
 #' @export

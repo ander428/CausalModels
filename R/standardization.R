@@ -12,6 +12,7 @@
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
+#' @param n.boot an integer value that indicates number of bootstrap iterations to calculate standard error.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
 #' @returns \code{standardization} returns an object of \code{\link[base:class]{class} "standardization"}.
@@ -24,9 +25,9 @@
 #' \item{call}{the matched call.}
 #' \item{formula}{the formula used in the model.}
 #' \item{model}{the underlying glm model.}
-#' \item{ATE}{the estimated average treatment effect.}
-#' \item{ATE.summary}{a data frame containing estimates of the treatment effect
+#' \item{ATE}{a data frame containing estimates of the treatment effect
 #'  of the observed, counterfactuals, and risk metrics.}
+#' \item{ATE.summary}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
 #'
 #' @export
 #'
@@ -52,7 +53,7 @@
 #' print(model$ATE.summary$Estimate[[2]] -
 #'       model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
 
-standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple, ...) {
+standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple, n.boot=50, ...) {
 
   check_init()
 
@@ -87,27 +88,52 @@ standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$
 
   combined_data <- rbind(cp, tr0, tr1) # combine copies
 
-  # build model using all three copies
-  model <- glm(f, data=combined_data, family = family, ...)
-  combined_data$Y_hat <- predict(model, combined_data)
+  model_func <- function(data, indices, f, family, ...) {
+    if(!anyNA(indices)) {
+      data <- data[indices,]
+    }
 
-  # calculate means in each group
-  means <- c(mean(combined_data$Y_hat[combined_data$label=="observed"]),     # estimated outcome of the observed
-             mean(combined_data$Y_hat[combined_data$label=="cf_treated"]),   # estimated counterfactual of the treated
-             mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]), # estimated counterfactual of the untreated
-             mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) -  # estimated risk differnece
-               mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]),
-             mean(combined_data$Y_hat[combined_data$label=="cf_treated"]) /  # estimated risk ratio
-               mean(combined_data$Y_hat[combined_data$label=="cf_untreated"]))
+    # build model using all three copies
+    model <- glm(formula = f, data = data, family = family, ...)
+    data$Y_hat <- predict(model, data)
 
-  ATE.summary <- data.frame(Estimate = means)
-  rownames(ATE.summary) <- c("Observed effect", "Counterfactual (treated)",
+    # calculate means in each group
+    means <- c(mean(data$Y_hat[data$label=="observed"]),     # estimated outcome of the observed
+               mean(data$Y_hat[data$label=="cf_treated"]),   # estimated counterfactual of the treated
+               mean(data$Y_hat[data$label=="cf_untreated"]), # estimated counterfactual of the untreated
+               mean(data$Y_hat[data$label=="cf_treated"]) -  # estimated risk differnece
+                 mean(data$Y_hat[data$label=="cf_untreated"]),
+               mean(data$Y_hat[data$label=="cf_treated"]) /  # estimated risk ratio
+                 mean(data$Y_hat[data$label=="cf_untreated"]))
+    return(list("model" = model, "means" = means))
+  }
+
+  # build model and bootstrapped estimates
+  result <- model_func(data=combined_data, indices=NA, f=f, family=family, ...)
+  boot_result <- boot(data=combined_data, R=n.boot, f=f, family=family,
+                      statistic = function(data, indices, f, family, ...) {
+                        model_func(data, indices, f, family, ...)$means[[4]]
+                      }, ...)
+
+  # calculate 95% CI
+  beta <- boot_result$t0
+  SE <- sd(boot_result$t)
+  ATE.summary <- data.frame(
+    "Beta" = beta,
+    "SE" = SE,
+    conf_int(beta, SE),
+    check.names=FALSE
+  )
+
+  model <- result$model
+  ATE <- data.frame(Estimate = result$means)
+  rownames(ATE) <- c("Observed effect", "Counterfactual (treated)",
                              "Counterfactual (untreated)", "Risk difference",
                              "Risk ratio")
 
   model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
   output <- list("call" = model$call, "formula" = model$call$formula,
-                 "model" = model, "ATE" = ATE.summary$Estimate[[4]], "ATE.summary" = ATE.summary)
+                 "model" = model, "ATE" = ATE, "ATE.summary" = ATE.summary)
   class(output) <- "standardization"
   return(output)
 }
@@ -117,7 +143,9 @@ print.standardization <- function(x, ...) {
   print(x$model, ...)
   cat("\r\n")
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
-  cat(x$ATE, "\r\n")
+  cat("Estimate - ", x$ATE$Estimate[[4]], "\r\n")
+  cat("SE       - ", x$ATE.summary$SE, "\r\n")
+  cat("95% CI   - (", x$ATE.summary$`2.5 %`, ", ", x$ATE.summary$`97.5 %`, ")", "\r\n")
 }
 
 #' @export
@@ -133,7 +161,7 @@ print.summary.standardization <- function(x, ...) {
   class(x) <- "summary.glm"
   print(x, ...)
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
-  print(x$ATE)
+  print(x$ATE, row.names=FALSE)
   cat("\r\n")
 }
 

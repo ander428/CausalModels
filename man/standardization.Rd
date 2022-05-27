@@ -9,6 +9,7 @@ standardization(
   f = NA,
   family = gaussian(),
   simple = pkg.env$simple,
+  n.boot = 50,
   ...
 )
 }
@@ -26,6 +27,8 @@ If true, interactions will be excluded. If false, interactions will be included.
 default, simple is set to false.
 NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.}
 
+\item{n.boot}{an integer value that indicates number of bootstrap iterations to calculate standard error.}
+
 \item{...}{additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.}
 }
 \value{
@@ -39,9 +42,9 @@ An object of class \code{"standardization"} is a list containing the following:
 \item{call}{the matched call.}
 \item{formula}{the formula used in the model.}
 \item{model}{the underlying glm model.}
-\item{ATE}{the estimated average treatment effect.}
-\item{ATE.summary}{a data frame containing estimates of the treatment effect
+\item{ATE}{a data frame containing estimates of the treatment effect
  of the observed, counterfactuals, and risk metrics.}
+\item{ATE.summary}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
 }
 \description{
 `standardization` uses a standard \code{\link[stats:glm]{glm}} linear model to perform parametric standardization

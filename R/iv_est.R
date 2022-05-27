@@ -6,8 +6,9 @@
 #' and the first should be 0.
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[=init_params]{init_params}}.
+#' @param n.boot an integer value that indicates number of bootstrap iterations to calculate standard error.
 #'
-#' @returns \code{iv_est} returns a double value representing the standard IV estimate.
+#' @returns \code{iv_est} returns a data frame containing the standard IV estimate, standard error, and Wald 95% CI.
 #'
 #' @export
 #'
@@ -29,7 +30,7 @@
 #'
 #' iv_est("highprice", nhefs.iv)
 
-iv_est <- function(IV, data) {
+iv_est <- function(IV, data, n.boot = 50) {
   check_init()
 
   # grab function parameters
@@ -44,11 +45,28 @@ iv_est <- function(IV, data) {
     stop("Instrumental variable must be binary")
   }
 
-  # manual calculation of standard IV Estimator
-  numer_1 <- mean(data[data[[IV]] == IV_levels[[2]],][[pkg.env$outcome]], na.rm = TRUE)
-  numer_0 <- mean(data[data[[IV]] == IV_levels[[1]],][[pkg.env$outcome]], na.rm = TRUE)
-  denom_1 <- mean(as.numeric(data[data[[IV]] == IV_levels[[2]],][[pkg.env$treatment]]), na.rm = TRUE)
-  denom_0 <- mean(as.numeric(data[data[[IV]] == IV_levels[[1]],][[pkg.env$treatment]]), na.rm = TRUE)
+  est_func <- function(data, indices, ...) {
+    data <- data[indices,]
+    # manual calculation of standard IV Estimator
+    numer_1 <- mean(data[data[[IV]] == IV_levels[[2]],][[pkg.env$outcome]], na.rm = TRUE)
+    numer_0 <- mean(data[data[[IV]] == IV_levels[[1]],][[pkg.env$outcome]], na.rm = TRUE)
+    denom_1 <- mean(as.numeric(data[data[[IV]] == IV_levels[[2]],][[pkg.env$treatment]]), na.rm = TRUE)
+    denom_0 <- mean(as.numeric(data[data[[IV]] == IV_levels[[1]],][[pkg.env$treatment]]), na.rm = TRUE)
 
-  return((numer_1 - numer_0) / (denom_1 - denom_0))
+    return((numer_1 - numer_0) / (denom_1 - denom_0))
+  }
+
+  boot_result <- boot(data=data, statistic = est_func, R = n.boot)
+
+  # calculate 95% CI
+  beta <- boot_result$t0
+  SE <- sd(boot_result$t)
+  ATE <- data.frame(
+    "ATE" = beta,
+    "SE" = SE,
+    conf_int(beta, SE),
+    check.names=FALSE
+  )
+
+  return(ATE)
 }

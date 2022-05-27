@@ -4,7 +4,7 @@
 \alias{iv_est}
 \title{Standard Instrumental Variable Estimator}
 \usage{
-iv_est(IV, data)
+iv_est(IV, data, n.boot = 50)
 }
 \arguments{
 \item{IV}{the instrumental variable to be used in the conditional means. Must be a factor with no more than 2 levels.
@@ -13,9 +13,11 @@ and the first should be 0.}
 
 \item{data}{a data frame containing the variables in the model.
 This should be the same data used in \code{\link[=init_params]{init_params}}.}
+
+\item{n.boot}{an integer value that indicates number of bootstrap iterations to calculate standard error.}
 }
 \value{
-\code{iv_est} returns a double value representing the standard IV estimate.
+\code{iv_est} returns a data frame containing the standard IV estimate, standard error, and Wald 95% CI.
 }
 \description{
 `iv_est` calculates the standard IV estimand using the conditional means on a given instrumental variable.

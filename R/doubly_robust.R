@@ -29,6 +29,7 @@
 #' @param p.family the family to be used in the underlying propensity model.
 #' By default, this is set to \code{\link[stats:gaussian]{binomial}}.
 #' @param p.scores (optional) use calculated propensity scores.
+#' @param n.boot an integer value that indicates number of bootstrap iterations to calculate standard error.
 #' @param ... additional arguments that may be passed to the underlying \code{\link[stats:glm]{glm}} model.
 #'
 #' @returns \code{doubly_robust} returns an object of \code{\link[base:class]{class}} "doubly_robust".
@@ -45,6 +46,7 @@
 #'  \item{y_hat}{the estimated outcome values.}
 #'  \item{p.scores}{the estimated propensity scores.}
 #'  \item{ATE}{the estimated average treatment effect (risk difference).}
+#'  \item{ATE.summary}{a data frame containing the ATE, SE, and 95\% CI of the ATE. }
 #'  \item{data}{the data frame used to train the model.}
 #'
 #' @export
@@ -82,7 +84,7 @@
 doubly_robust <- function(data, out.mod = NULL, p.mod = NULL, f = NA,
                           family = gaussian(), simple = pkg.env$simple, scores = NA,
                           p.f = NA, p.simple = pkg.env$simple, p.family = binomial(),
-                          p.scores = NA, ...) {
+                          p.scores = NA, n.boot = 50, ...) {
 
   check_init()
 
@@ -108,12 +110,26 @@ doubly_robust <- function(data, out.mod = NULL, p.mod = NULL, f = NA,
     p.scores <- predict(p.mod)
   }
 
+  boot_result <- boot(data=data, statistic = function(data, indices) {
+    data <- data[indices,]
+    scores <- scores[indices]
+    p.scores <- p.scores[indices]
+    return(doubly_robust_est(scores, p.scores, data))
+  }, R = n.boot)
 
-  est <- doubly_robust_est(scores, p.scores, data)
+  # calculate 95% CI
+  beta <- boot_result$t0
+  SE <- sd(boot_result$t)
+  ATE <- data.frame(
+    "ATE" = beta,
+    "SE" = SE,
+    conf_int(beta, SE),
+    check.names=FALSE
+  )
 
   output <- list("out.call" = out.mod$call, "p.call" = p.mod$call, "out.model" = out.mod,
                  "p.model" = p.mod,  "y_hat" = scores, "p.scores" = p.scores,
-                 "ATE" = est, "data" = data)
+                 "ATE" = beta, "ATE.summary" = ATE, "data" = data)
 
   class(output) <- "doubly_robust"
   return(output)
@@ -131,8 +147,11 @@ print.doubly_robust <- function(x, ...) {
   print(x$p.call, ...)
   cat("\r\nPredictions:\r\n")
   print(summary(x$p.scores))
-  cat("\r\nAverage treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
-  cat(x$ATE, "\r\n")
+  cat("\r\n")
+  cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
+  cat("Estimate - ", x$ATE, "\r\n")
+  cat("SE       - ", x$ATE.summary$SE, "\r\n")
+  cat("95% CI   - (", x$ATE.summary$`2.5 %`, ", ", x$ATE.summary$`97.5 %`, ")", "\r\n")
 }
 
 #' @export
