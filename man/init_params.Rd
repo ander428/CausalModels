@@ -4,7 +4,7 @@
 \alias{init_params}
 \title{Initialize CausalModels Package}
 \usage{
-init_params(outcome, treatment, covariates, data, simple = F)
+init_params(outcome, treatment, covariates, data, simple = FALSE)
 }
 \arguments{
 \item{outcome}{the outcome variable of interest (must be continuous).}
@@ -18,6 +18,9 @@ init_params(outcome, treatment, covariates, data, simple = F)
 \item{simple}{a boolean indicator to build default formula with interactions.
 If true, interactions will be excluded. If false, interactions will be included. By
 default, simple is set to false.}
+}
+\value{
+No return value. Called for parameter initialization.
 }
 \description{
 This function is required to be run first before any other function can run.

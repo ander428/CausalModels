@@ -10,6 +10,8 @@
 #' If true, interactions will be excluded. If false, interactions will be included. By
 #' default, simple is set to false.
 #'
+#' @returns No return value. Called for parameter initialization.
+#'
 #' @export
 #'
 init_params <- function(outcome, treatment, covariates, data, simple = FALSE) {
