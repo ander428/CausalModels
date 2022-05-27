@@ -2,9 +2,27 @@ Package: CausalModels
 Type: Package
 Title: Causal Inference Modeling for Estimation of Causal Effects
 Version: 0.1.0
-Author: Joshua Anderson, Yesha Patel, and Cyril Rakovski
+Authors@R: 
+   c(person(given = "Joshua",
+             family = "Anderson",
+             role = c("aut", "cre", "cph"),
+             email = "jwanderson198@gmail.com"),
+     person(given = "Cyril",
+             family = "Rakovski",
+             role = "rev",
+             email = "rakovski@chapman.edu"),
+     person(given = "Yesha",
+             family = "Patel",
+             role = "rev"),
+     person(given = "Erin",
+             family = "Lee",
+             role = "rev"))
 Maintainer: Joshua Anderson <joshanderson@chapman.edu>
-Description: Statistical models for adjustment of bias and estimation of causal effects.
+Description: 
+  Provides an array of statistical models common in causal inference such as 
+  standardization, IP weighting, propensity matching, outcome regression, and doubly-robust 
+  estimators. Estimates of the average treatment effects from each model are given with the 
+  standard error and a 95% Wald confidence interval (Hernan, Robins (2020) <https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/>).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

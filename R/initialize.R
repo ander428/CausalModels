@@ -12,26 +12,26 @@
 #'
 #' @export
 #'
-init_params <- function(outcome, treatment, covariates, data, simple = F) {
+init_params <- function(outcome, treatment, covariates, data, simple = FALSE) {
   params <- as.list(match.call()[-1])
   cov <- params$cov
 
   if(!is.numeric(data[[as.character(params$outcome)]])) {
-    assign('init', F, pkg.env)
+    assign('init', FALSE, pkg.env)
     stop("Outcome variable must be numeric!")
   }
 
   if(!is.factor(data[[as.character(params$treatment)]])) {
-    assign('init', F, pkg.env)
+    assign('init', FALSE, pkg.env)
     stop("Treatment must be of type factor!")
   }
 
   else if(length(levels(data[[as.character(params$treatment)]])) > 2 ) {
-    assign('init', F, pkg.env)
+    assign('init', FALSE, pkg.env)
     stop(paste("Treatment must be binary!", as.character(params$treatment), "has more than two levels!"))
   }
 
-  tryCatch(data[as.character(params$covariates)[-1]], error = function(e) {assign('init', T, pkg.env); stop(e)})
+  tryCatch(data[as.character(params$covariates)[-1]], error = function(e) {assign('init', TRUE, pkg.env); stop(e)})
 
   assign('outcome', as.character(params$outcome), pkg.env)
   assign('treatment', as.character(params$treatment), pkg.env)
@@ -59,7 +59,7 @@ init_params <- function(outcome, treatment, covariates, data, simple = F) {
   assign('f_out', f_out, pkg.env)
   assign('f_tr', f_tr, pkg.env)
 
-  assign('init', T, pkg.env)
+  assign('init', TRUE, pkg.env)
 
   cat("Successfully initialized!\r\n\r\n")
 

@@ -1,5 +1,5 @@
 
-build_formula <- function(out, cov = list(), tr = NA, data, simple = F) {
+build_formula <- function(out, cov = list(), tr = NA, data, simple = FALSE) {
   # set treatment variable value
   tr <- ifelse(!is.na(tr), as.character(tr), "")
 
@@ -32,7 +32,7 @@ glm
   # add cubic terms for each continuous variable
   else {
     # helper function to write out interactions between two vars
-    print_interact <- function(x, y, use.I = T) {
+    print_interact <- function(x, y, use.I = TRUE) {
       if(!use.I) {
         return(paste("(",x,"*",y,")", collapse = ""))
       }
@@ -45,14 +45,14 @@ glm
     if(!anyNA(cont) && !identical(cont, character(0))) {
       # logic for a single continuous covariate
       if(length(cont) == 1) {
-        tr_interact <- ifelse(tr != "", paste("+", print_interact(tr, cont, F)), "")
+        tr_interact <- ifelse(tr != "", paste("+", print_interact(tr, cont, FALSE)), "")
         cont_val <- paste(cont, tr_interact, "+", print_interact(cont, cont))
       }
       # logic for a set of continuous covariates
       else{
         i <- 1
         for(var in cont) {
-          tr_interact <- ifelse(tr != "", paste("+", print_interact(tr, var, F)), "")
+          tr_interact <- ifelse(tr != "", paste("+", print_interact(tr, var, FALSE)), "")
           plus_op <- ifelse(i == 1, "", "+") # if first value, don't add plus
           cont_val <- paste(cont_val, plus_op, var, tr_interact, "+", print_interact(var, var))
           i <- i + 1
