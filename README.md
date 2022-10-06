@@ -7,7 +7,14 @@
 The goal of CausalModels is to provide a survey of fundamental causal
 inference models in one single location. While there are many packages
 for these types of models, CausalModels brings them all to one place
-with a simple user experience.
+with a simple user experience. The package uses a format that is familiar
+to users using well known statistical and machine learning models. While causal inference
+models require careful consideration of variables to correctly infer a causal effect,
+CausalModels uses simple code while requiring the user to make these considerations. This
+enables efficient and thoughtful research using causal inference.
+As of May 30, 2022, the package has been 
+[published on CRAN](https://cran.r-project.org/web/packages/CausalModels/index.html).
+The R manual can be viewed [here](https://cran.r-project.org/web/packages/CausalModels/CausalModels.pdf).
 
 ## Installation
 
@@ -17,6 +24,12 @@ You can install the development version of CausalModels from
 ``` r
 # install.packages("devtools")
 devtools::install_github("ander428/CausalModels")
+```
+
+Since the package has been published on CRAN, the production version can be installed with:
+
+``` r
+install.packages("CausalModels")
 ```
 
 ## Example
