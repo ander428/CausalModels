@@ -15,7 +15,7 @@
 #' default, simple is set to false.
 #' NOTE: if this is changed, the coefficient for treatment may not accurately represent the average causal effect.
 #' @param p.family the family to be used in the underlying propensity model.
-#' By default, this is set to \code{\link[stats:gaussian]{binomial}}.
+#' By default, this is set to \code{\link[stats:binomial]{binomial}}.
 #' @param p.scores (optional) use calculated propensity scores for the weights. If using standardized weights,
 #' the numerator will still be modeled.
 #' @param SW a boolean indicator to indicate the use of standardized weights. By default, this is set to true.

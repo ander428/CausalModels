@@ -1,7 +1,7 @@
 Package: CausalModels
 Type: Package
 Title: Causal Inference Modeling for Estimation of Causal Effects
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
    c(person(given = "Joshua",
              family = "Anderson",
@@ -34,4 +34,5 @@ Imports:
   stats,
   causaldata,
   boot,
-  multcomp
+  multcomp,
+  geepack

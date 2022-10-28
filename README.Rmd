@@ -20,6 +20,19 @@ The goal of CausalModels is to provide a survey of fundamental causal inference 
 single location. While there are many packages for these types of models, CausalModels brings
 them all to one place with a simple user experience.
 
+## Change Log
+
+### Version 0.2.0 - 2022/10/27
+
+#### Added
+
+- one parameter g-estimation
+
+#### Fixed
+
+- Typo in ipweighting documentation
+
+
 ## Installation
 
 You can install the development version of CausalModels from [GitHub](https://github.com/) with:

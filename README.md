@@ -9,6 +9,18 @@ inference models in one single location. While there are many packages
 for these types of models, CausalModels brings them all to one place
 with a simple user experience.
 
+## Change Log
+
+### Version 0.2.0 - 2022/10/27
+
+#### Added
+
+-   one parameter g-estimation
+
+#### Fixed
+
+-   Typo in ipweighting documentation
+
 ## Installation
 
 You can install the development version of CausalModels from
@@ -26,6 +38,7 @@ This is a basic example which shows you how to solve a common problem:
 ``` r
 library(CausalModels)
 library(causaldata)
+#> Warning: package 'causaldata' was built under R version 4.1.3
 
 data(nhefs)
 
@@ -37,6 +50,7 @@ confounders <- c("sex", "race", "age", "education", "smokeintensity",
 
 # initialize package
 ?init_params
+#> starting httpd help server ... done
 init_params(wt82_71, qsmk,
             covariates = confounders,
             data = nhefs.nmv, simple = F)
@@ -64,7 +78,7 @@ print(model)
 #>     active + age + (qsmk * age) + I(age * age) + smokeintensity + 
 #>     (qsmk * smokeintensity) + I(smokeintensity * smokeintensity) + 
 #>     smokeyrs + (qsmk * smokeyrs) + I(smokeyrs * smokeyrs) + wt71 + 
-#>     (qsmk * wt71) + I(wt71 * wt71), family = family, data = combined_data)
+#>     (qsmk * wt71) + I(wt71 * wt71), family = family, data = data)
 #> 
 #> Coefficients:
 #>                        (Intercept)                               qsmk1  
@@ -98,7 +112,9 @@ print(model)
 #> Residual Deviance: 82690     AIC: 10710
 #> 
 #> Average treatment effect of qsmk:
-#> 3.4927 
+#> Estimate -  3.4927 
+#> SE       -  0.4723109 
+#> 95% CI   - ( 2.566988 ,  4.418413 ) 
 summary(model)
 #> 
 #> Call:
@@ -106,7 +122,7 @@ summary(model)
 #>     active + age + (qsmk * age) + I(age * age) + smokeintensity + 
 #>     (qsmk * smokeintensity) + I(smokeintensity * smokeintensity) + 
 #>     smokeyrs + (qsmk * smokeyrs) + I(smokeyrs * smokeyrs) + wt71 + 
-#>     (qsmk * wt71) + I(wt71 * wt71), family = family, data = combined_data)
+#>     (qsmk * wt71) + I(wt71 * wt71), family = family, data = data)
 #> 
 #> Deviance Residuals: 
 #>     Min       1Q   Median       3Q      Max  
@@ -151,11 +167,7 @@ summary(model)
 #> Number of Fisher Scoring iterations: 2
 #> 
 #> Average treatment effect of qsmk:
-#>                            Estimate
-#> Observed effect            2.638300
-#> Counterfactual (treated)   5.243703
-#> Counterfactual (untreated) 1.751003
-#> Risk difference            3.492700
-#> Risk ratio                 2.994686
+#>    Beta        SE    2.5 %   97.5 %
+#>  3.4927 0.4723109 2.566988 4.418413
 #> 
 ```
