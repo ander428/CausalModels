@@ -35,15 +35,18 @@
 #' library(causaldata)
 #'
 #' data(nhefs)
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
-#'                      "smokeyrs", "exercise", "active", "wt71")
+#' confounders <- c(
+#'   "sex", "race", "age", "education", "smokeintensity",
+#'   "smokeyrs", "exercise", "active", "wt71"
+#' )
 #'
 #' init_params(wt82_71, qsmk,
-#'             covariates = confounders,
-#'             data = nhefs.nmv)
+#'   covariates = confounders,
+#'   data = nhefs.nmv
+#' )
 #'
 #' # model using all defaults
 #' model <- standardization(data = nhefs.nmv)
@@ -51,22 +54,23 @@
 #' summary(model)
 #' print(model$ATE.summary)
 #' print(model$ATE.summary$Estimate[[2]] -
-#'       model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
-
-standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple, n.boot=50, ...) {
-
+#'   model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
+#'
+standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$simple, n.boot = 50, ...) {
   check_init()
 
   # grab function parameters
   params <- as.list(match.call()[-1])
 
   # if no formula provided
-  if(is.na(as.character(f))[1]) {
+  if (is.na(as.character(f))[1]) {
     # override simple
-    if(simple != pkg.env$simple) {
-      f <- build_formula(out = pkg.env$outcome, tr = pkg.env$treatment,
-                         cov = pkg.env$covariates,
-                         data = data, simple = simple)
+    if (simple != pkg.env$simple) {
+      f <- build_formula(
+        out = pkg.env$outcome, tr = pkg.env$treatment,
+        cov = pkg.env$covariates,
+        data = data, simple = simple
+      )
     }
     # use default
     else {
@@ -89,8 +93,8 @@ standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$
   combined_data <- rbind(cp, tr0, tr1) # combine copies
 
   model_func <- function(data, indices, f, family, ...) {
-    if(!anyNA(indices)) {
-      data <- data[indices,]
+    if (!anyNA(indices)) {
+      data <- data[indices, ]
     }
 
     # build model using all three copies
@@ -98,22 +102,26 @@ standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$
     data$Y_hat <- predict(model, data)
 
     # calculate means in each group
-    means <- c(mean(data$Y_hat[data$label=="observed"]),     # estimated outcome of the observed
-               mean(data$Y_hat[data$label=="cf_treated"]),   # estimated counterfactual of the treated
-               mean(data$Y_hat[data$label=="cf_untreated"]), # estimated counterfactual of the untreated
-               mean(data$Y_hat[data$label=="cf_treated"]) -  # estimated risk differnece
-                 mean(data$Y_hat[data$label=="cf_untreated"]),
-               mean(data$Y_hat[data$label=="cf_treated"]) /  # estimated risk ratio
-                 mean(data$Y_hat[data$label=="cf_untreated"]))
+    means <- c(
+      mean(data$Y_hat[data$label == "observed"]), # estimated outcome of the observed
+      mean(data$Y_hat[data$label == "cf_treated"]), # estimated counterfactual of the treated
+      mean(data$Y_hat[data$label == "cf_untreated"]), # estimated counterfactual of the untreated
+      mean(data$Y_hat[data$label == "cf_treated"]) - # estimated risk differnece
+        mean(data$Y_hat[data$label == "cf_untreated"]),
+      mean(data$Y_hat[data$label == "cf_treated"]) / # estimated risk ratio
+        mean(data$Y_hat[data$label == "cf_untreated"])
+    )
     return(list("model" = model, "means" = means))
   }
 
   # build model and bootstrapped estimates
-  result <- model_func(data=combined_data, indices=NA, f=f, family=family, ...)
-  boot_result <- boot(data=combined_data, R=n.boot, f=f, family=family,
-                      statistic = function(data, indices, f, family, ...) {
-                        model_func(data, indices, f, family, ...)$means[[4]]
-                      }, ...)
+  result <- model_func(data = combined_data, indices = NA, f = f, family = family, ...)
+  boot_result <- boot(
+    data = combined_data, R = n.boot, f = f, family = family,
+    statistic = function(data, indices, f, family, ...) {
+      model_func(data, indices, f, family, ...)$means[[4]]
+    }, ...
+  )
 
   # calculate 95% CI
   beta <- boot_result$t0
@@ -122,18 +130,22 @@ standardization <- function(data, f = NA, family = gaussian(), simple = pkg.env$
     "Beta" = beta,
     "SE" = SE,
     conf_int(beta, SE),
-    check.names=FALSE
+    check.names = FALSE
   )
 
   model <- result$model
   ATE <- data.frame(Estimate = result$means)
-  rownames(ATE) <- c("Observed effect", "Counterfactual (treated)",
-                             "Counterfactual (untreated)", "Risk difference",
-                             "Risk ratio")
+  rownames(ATE) <- c(
+    "Observed effect", "Counterfactual (treated)",
+    "Counterfactual (untreated)", "Risk difference",
+    "Risk ratio"
+  )
 
   model$call$formula <- formula(f) # manually set model formula to prevent "formula = formula"
-  output <- list("call" = model$call, "formula" = model$call$formula,
-                 "model" = model, "ATE" = ATE, "ATE.summary" = ATE.summary)
+  output <- list(
+    "call" = model$call, "formula" = model$call$formula,
+    "model" = model, "ATE" = ATE, "ATE.summary" = ATE.summary
+  )
   class(output) <- "standardization"
   return(output)
 }
@@ -161,11 +173,11 @@ print.summary.standardization <- function(x, ...) {
   class(x) <- "summary.glm"
   print(x, ...)
   cat("Average treatment effect of ", pkg.env$treatment, ":", "\r\n", sep = "")
-  print(x$ATE, row.names=FALSE)
+  print(x$ATE, row.names = FALSE)
   cat("\r\n")
 }
 
 #' @export
 predict.standardization <- function(object, ...) {
-    return(predict(object$model, ...))
+  return(predict(object$model, ...))
 }

@@ -53,15 +53,18 @@
 #' @examples
 #' library(causaldata)
 #' data(nhefs)
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
-#'                      "smokeyrs", "exercise", "active", "wt71")
+#' confounders <- c(
+#'   "sex", "race", "age", "education", "smokeintensity",
+#'   "smokeyrs", "exercise", "active", "wt71"
+#' )
 #'
 #' init_params(wt82_71, qsmk,
-#'             covariates = confounders,
-#'             data = nhefs.nmv)
+#'   covariates = confounders,
+#'   data = nhefs.nmv
+#' )
 #'
 #' gest.model <- gestimation(nhefs.nmv, type = "one.linear", n.boot = 150)
 #' gest.model$ATE.summary
@@ -69,18 +72,20 @@
 #' @export
 gestimation <- function(data, grid, ids = list(), f = NA, family = binomial(), simple = pkg.env$simple,
                         p.f = NA, p.simple = pkg.env$simple, p.family = binomial(), p.scores = NA,
-                        SW = TRUE, n.boot = 100, type = "one.grid",  ...) {
+                        SW = TRUE, n.boot = 100, type = "one.grid", ...) {
   check_init()
 
   # grab function parameters
   params <- as.list(match.call()[-1])
 
   # if no formula provided
-  if(is.na(as.character(f))[1]) {
+  if (is.na(as.character(f))[1]) {
     # override simple
-    if(simple != pkg.env$simple) {
-      f <- build_formula(out = pkg.env$treatment, cov = pkg.env$covariates,
-                         data = data, simple = p.simple)
+    if (simple != pkg.env$simple) {
+      f <- build_formula(
+        out = pkg.env$treatment, cov = pkg.env$covariates,
+        data = data, simple = p.simple
+      )
     }
     # use default
     else {
@@ -89,15 +94,17 @@ gestimation <- function(data, grid, ids = list(), f = NA, family = binomial(), s
   }
 
   # if user does not give propensity scores
-  if(anyNA(p.scores)) {
-    if(!is.na(as.character(p.f))[1]) {
+  if (anyNA(p.scores)) {
+    if (!is.na(as.character(p.f))[1]) {
       p.scores <- propensity_scores(p.f, data = data, family = p.family)$p.scores
     }
     # if no given propensity formula
     else {
-      if(p.simple != pkg.env$simple) {
-        p.f <- build_formula(out = pkg.env$treatment, cov = pkg.env$covariates,
-                             data = data, simple = p.simple)
+      if (p.simple != pkg.env$simple) {
+        p.f <- build_formula(
+          out = pkg.env$treatment, cov = pkg.env$covariates,
+          data = data, simple = p.simple
+        )
       }
       # use default
       else {
@@ -110,38 +117,36 @@ gestimation <- function(data, grid, ids = list(), f = NA, family = binomial(), s
 
   # if user does give propensity scores
   else {
-    if(!is.na(as.character(p.f))[1]) {
+    if (!is.na(as.character(p.f))[1]) {
       message("Ignoring given propensity formula since propensity scores have been given.")
     }
     message("Using given propensity scores.")
   }
 
   # use standardized weights
-  if(SW) {
-    numer_scores <- propensity_scores(as.formula(paste(pkg.env$treatment,"~1")), family = binomial(), data = data)$p.scores
+  if (SW) {
+    numer_scores <- propensity_scores(as.formula(paste(pkg.env$treatment, "~1")), family = binomial(), data = data)$p.scores
 
     data$weights <- numer_scores / p.scores
-  }
-  else {
+  } else {
     data$weights <- 1 / p.scores
   }
 
   # perform grid search
-  if(type == "one.grid") {
-    if(length(grid) == 0) {
+  if (type == "one.grid") {
+    if (length(grid) == 0) {
       errorCondition("'grid' parameter must have be a list with at least one value.")
     }
 
-    coefs <- cbind(rep(NA,length(grid)), rep(NA,length(grid)), rep(NA,length(grid)), rep(NA, length(grid)))
+    coefs <- cbind(rep(NA, length(grid)), rep(NA, length(grid)), rep(NA, length(grid)), rep(NA, length(grid)))
     colnames(coefs) <- list("Effect", "Estimate", "Std. Error", "Pr(>|W|)")
     data$weights <- rep(1, nrow(data))
 
     # validate rownames
-    if(length(ids) != nrow(data)) {
+    if (length(ids) != nrow(data)) {
       message("IDs list does not match number of rows in data. Using rownames by default.")
       data$ids <- rownames(data)
-    }
-    else {
+    } else {
       data$ids <- ids
     }
 
@@ -155,16 +160,16 @@ gestimation <- function(data, grid, ids = list(), f = NA, family = binomial(), s
     for (val in grid) {
       i <- i + 1
       data[[pkg.env$treatment]] <- as.numeric(as.character(data[[pkg.env$treatment]])) # geeglm requires numeric response
-      data$beta <- data[[pkg.env$outcome]] - (val * data[[pkg.env$treatment]]-1)
+      data$beta <- data[[pkg.env$outcome]] - (val * data[[pkg.env$treatment]] - 1)
 
-      model <- geepack::geeglm(f, family=family, data=data, weights=weights, id=ids, corstr="independence")
+      model <- geepack::geeglm(f, family = family, data = data, weights = weights, id = ids, corstr = "independence")
       models[[i]] <- model
       estimate <- summary(model)$coefficients["beta", "Estimate"]
 
-      coefs[i,1] <- val
-      coefs[i,2] <- estimate
-      coefs[i,3] <- summary(model)$coefficients["beta", "Std.err"]
-      coefs[i,4] <- summary(model)$coefficients["beta", "Pr(>|W|)"]
+      coefs[i, 1] <- val
+      coefs[i, 2] <- estimate
+      coefs[i, 3] <- summary(model)$coefficients["beta", "Std.err"]
+      coefs[i, 4] <- summary(model)$coefficients["beta", "Pr(>|W|)"]
     }
 
     result <- as.data.frame(coefs)
@@ -179,45 +184,49 @@ gestimation <- function(data, grid, ids = list(), f = NA, family = binomial(), s
       `97.5 %` = result$Effect[[max(conf_int_idx)]],
       check.names = FALSE
     )
-    #colnames(ATE.summary) <- c("Beta", "SE", "2.5 %", "97.5 %")
+    # colnames(ATE.summary) <- c("Beta", "SE", "2.5 %", "97.5 %")
 
-    output <- list("call" = model$call, "formula" = f, "best.model" = models[[which.min(abs(result$Estimate))]],
-                   "weights" = data$weights, "result" = result[-1], type = "one.grid",
-                   "ATE" = ATE.summary$Beta, "ATE.summary" = ATE.summary)
+    output <- list(
+      "call" = model$call, "formula" = f, "best.model" = models[[which.min(abs(result$Estimate))]],
+      "weights" = data$weights, "result" = result[-1], type = "one.grid",
+      "ATE" = ATE.summary$Beta, "ATE.summary" = ATE.summary
+    )
 
     class(output) <- "gestimation"
     return(output)
   }
 
   # one parameter linear mean model
-  else if(type == "one.linear") {
+  else if (type == "one.linear") {
     data[[pkg.env$treatment]] <- as.numeric(as.character(data[[pkg.env$treatment]]))
 
     model_func <- function(data, indices, f, family, weights, ...) {
-      if(!anyNA(indices)) {
-        data <- data[indices,]
+      if (!anyNA(indices)) {
+        data <- data[indices, ]
       }
 
       model <- glm(f, data = data, weights = weights, family = family)
       preds <- predict(model, data, type = "response")
-      estimate <- sum(data$weights*data[[pkg.env$outcome]]*(data[[pkg.env$treatment]]-preds)) /
-        sum(data$weights*data[[pkg.env$treatment]]*(data[[pkg.env$treatment]] - preds))
+      estimate <- sum(data$weights * data[[pkg.env$outcome]] * (data[[pkg.env$treatment]] - preds)) /
+        sum(data$weights * data[[pkg.env$treatment]] * (data[[pkg.env$treatment]] - preds))
       return(list("model" = model, "ATE" = estimate))
     }
 
     # build model
-    result <- model_func(data=data, indices=NA, f=f, family=family, weights = data$weights, ...)
+    result <- model_func(data = data, indices = NA, f = f, family = family, weights = data$weights, ...)
     model <- result$model
     beta <- 0
     SE <- 0
     ATE <- result$ATE
 
-    if(n.boot > 1) {
+    if (n.boot > 1) {
       # build bootstrapped estimates
-      boot_result <- boot(data=data, R=n.boot, f=f, family=family, weights=data$weights,
-                          statistic = function(data, indices, f, family, ...) {
-                            model_func(data, indices, f, family, weights, ...)$ATE
-                          }, ...)
+      boot_result <- boot(
+        data = data, R = n.boot, f = f, family = family, weights = data$weights,
+        statistic = function(data, indices, f, family, ...) {
+          model_func(data, indices, f, family, weights, ...)$ATE
+        }, ...
+      )
 
       # calculate 95% CI
       beta <- boot_result$t0
@@ -229,29 +238,28 @@ gestimation <- function(data, grid, ids = list(), f = NA, family = binomial(), s
       "Beta" = beta,
       "SE" = SE,
       conf_int(beta, SE),
-      check.names=FALSE
+      check.names = FALSE
     )
 
-    output <- list("call" = model$call, "formula" = f, "model" = model, type = "one.linear",
-                   "weights" = data$weights, "ATE" = ATE.summary$Beta, "ATE.summary" = ATE.summary)
+    output <- list(
+      "call" = model$call, "formula" = f, "model" = model, type = "one.linear",
+      "weights" = data$weights, "ATE" = ATE.summary$Beta, "ATE.summary" = ATE.summary
+    )
 
     class(output) <- "gestimation"
     return(output)
-  }
-
-  else {
+  } else {
     errorCondition("Invalid model type. Must be one of ('one.grid', 'one.linear')")
   }
 }
 
 #' @export
 print.gestimation <- function(x, ...) {
-  if(x$type == "one.grid") {
+  if (x$type == "one.grid") {
     cat("Best Model:")
     cat("\r\n")
     print(x$best.model, ...)
-  }
-  else {
+  } else {
     print(x$model, ...)
   }
 

@@ -30,31 +30,36 @@
 #' @examples
 #' library(causaldata)
 #' data(nhefs)
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
-#'                      "smokeyrs", "exercise", "active", "wt71")
+#' confounders <- c(
+#'   "sex", "race", "age", "education", "smokeintensity",
+#'   "smokeyrs", "exercise", "active", "wt71"
+#' )
 #'
 #' init_params(wt82_71, qsmk,
-#'             covariates = confounders,
-#'             data = nhefs.nmv)
+#'   covariates = confounders,
+#'   data = nhefs.nmv
+#' )
 #'
 #' p.score <- propensity_scores(nhefs.nmv)
 #' p.score
-
-propensity_scores <- function(data, f = NA,  simple = pkg.env$simple, family = binomial(), ...) {
+#'
+propensity_scores <- function(data, f = NA, simple = pkg.env$simple, family = binomial(), ...) {
   check_init()
 
   # grab function parameters
   params <- as.list(match.call()[-1])
 
   # if no formula provided
-  if(is.na(as.character(f))[1]) {
+  if (is.na(as.character(f))[1]) {
     # override simple
-    if(simple != pkg.env$simple) {
-      f <- build_formula(out = pkg.env$treatment, cov = pkg.env$covariates,
-                         data = data, simple = simple)
+    if (simple != pkg.env$simple) {
+      f <- build_formula(
+        out = pkg.env$treatment, cov = pkg.env$covariates,
+        data = data, simple = simple
+      )
     }
     # use default
     else {
@@ -65,7 +70,7 @@ propensity_scores <- function(data, f = NA,  simple = pkg.env$simple, family = b
   # build model and generate scores
   model <- glm(f, data = data, family = family, ...)
 
-  scores <- predict(model, type="response")
+  scores <- predict(model, type = "response")
 
   # probability of treatment for the untreated
   # scores[which(data[[pkg.env$treatment]] == 0)] = 1 - scores[which(data[[pkg.env$treatment]] == 0)]
@@ -89,5 +94,5 @@ summary.propensity_scores <- function(object, ...) {
 
 #' @export
 predict.propensity_scores <- function(object, ...) {
-  return(predict(object$model, type = 'response', ...))
+  return(predict(object$model, type = "response", ...))
 }

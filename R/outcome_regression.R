@@ -38,35 +38,42 @@
 #' library(multcomp)
 #'
 #' data(nhefs)
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
-#'                      "smokeyrs", "exercise", "active", "wt71")
+#' confounders <- c(
+#'   "sex", "race", "age", "education", "smokeintensity",
+#'   "smokeyrs", "exercise", "active", "wt71"
+#' )
 #'
 #' init_params(wt82_71, qsmk,
-#'             covariates = confounders,
-#'             data = nhefs.nmv)
+#'   covariates = confounders,
+#'   data = nhefs.nmv
+#' )
 #'
-#' out.mod <- outcome_regression(nhefs.nmv, contrasts = list(age = c(21, 55),
-#'                               smokeintensity = c(5, 20, 40)))
+#' out.mod <- outcome_regression(nhefs.nmv, contrasts = list(
+#'   age = c(21, 55),
+#'   smokeintensity = c(5, 20, 40)
+#' ))
 #' print(out.mod)
 #' summary(out.mod)
-#' head(data.frame(preds=predict(out.mod)))
-
+#' head(data.frame(preds = predict(out.mod)))
+#'
 outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
-                               family = gaussian(), contrasts = list(),  ...) {
+                               family = gaussian(), contrasts = list(), ...) {
   check_init()
 
   # grab function parameters
   params <- as.list(match.call()[-1])
 
   # if no formula provided
-  if(is.na(as.character(f))[1]) {
+  if (is.na(as.character(f))[1]) {
     # override simple
-    if(simple != pkg.env$simple) {
-      f <- build_formula(out = pkg.env$outcome, tr=pkg.env$treatment,
-                         cov = pkg.env$covariates, data = data, simple = simple)
+    if (simple != pkg.env$simple) {
+      f <- build_formula(
+        out = pkg.env$outcome, tr = pkg.env$treatment,
+        cov = pkg.env$covariates, data = data, simple = simple
+      )
     }
     # use default
     else {
@@ -79,29 +86,35 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   ATE <- NA
   ATE.summary <- NA
 
-  model <- glm(f, data=data, family = family, ...)
+  model <- glm(f, data = data, family = family, ...)
   model$call$formula <- f
 
   # grab and divide model matrix
   temp_map <- data.frame(model.matrix(model))
-  num_vars <- sapply(temp_map, function(x) {length(unique(x)) > 2})
+  num_vars <- sapply(temp_map, function(x) {
+    length(unique(x)) > 2
+  })
   disc <- temp_map[!num_vars]
-  disc <- disc[,-c(1,ncol(disc))]# exclude intercept and treatment
-  has_interaction <- unlist(lapply(names(num_vars), function(x) {grepl(pkg.env$treatment,
-                                                                       x, fixed = TRUE)}))
+  disc <- disc[, -c(1, ncol(disc))] # exclude intercept and treatment
+  has_interaction <- unlist(lapply(names(num_vars), function(x) {
+    grepl(pkg.env$treatment,
+      x,
+      fixed = TRUE
+    )
+  }))
   continuous <- temp_map[has_interaction][-1]
 
 
   # if there are no interactions, use original variables
-  if(ncol(continuous) == 0) {
+  if (ncol(continuous) == 0) {
     continuous <- temp_map[num_vars]
   }
   # if only sum interactions, use original for those without one
   else {
     no_interaction <- list()
-    for(i in 1:length(num_vars)) {
+    for (i in 1:length(num_vars)) {
       no_interaction[i] <- (!has_interaction[[i]] && num_vars[[i]] &&
-                              !any(grepl(names(num_vars)[[i]], names(continuous))))
+        !any(grepl(names(num_vars)[[i]], names(continuous))))
     }
     continuous <- cbind(continuous, temp_map[unlist(no_interaction)])
   }
@@ -109,13 +122,13 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   continuous_names <- names(continuous)
 
   cont_input <- list()
-  for(i in 1:length(names(disc))) {
+  for (i in 1:length(names(disc))) {
     cont_input[[i]] <- paste("Effect of", "qsmk", "at", names(disc[i]))
   }
 
-  if(length(contrasts) > 0) {
+  if (length(contrasts) > 0) {
     j <- length(cont_input) + 1
-    for(i in 1:length(contrasts)) {
+    for (i in 1:length(contrasts)) {
       cont_input[[j]] <- paste("Effect of", "qsmk", "at", names(contrasts[i]), "of", contrasts[[i]]) # issue is here
       j <- j + 1
     }
@@ -126,31 +139,33 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   cont_mat <- contrast_matrix(model, length(cont_input), cont_input)
 
   sum_cont <- 0
-  for(cont in contrasts) {
+  for (cont in contrasts) {
     sum_cont <- sum_cont + length(cont)
   }
 
   j <- 1
   cont_mat[1:length(cont_input), "qsmk1"] <- 1
 
-  for(i in 1:length(names(disc))) {
+  for (i in 1:length(names(disc))) {
     cont_mat[j, names(disc[i])] <- 1
     j <- j + 1
   }
 
-  if(length(contrasts) > 0) {
-    for(i in 1:length(contrasts)) {
+  if (length(contrasts) > 0) {
+    for (i in 1:length(contrasts)) {
       name <- names(contrasts[i])
-      for(val in contrasts[[i]]) {
-        if(paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2],
-                 ":", name, sep="") %in% colnames(cont_mat)) {
-                   cont_mat[j, paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], ":", name, sep="")] <- val
-        }
-        else if(paste(name, ":", pkg.env$treatment,
-                      levels(data[[pkg.env$treatment]])[2], sep="") %in% colnames(cont_mat)) {
-          cont_mat[j, paste(name, ":", pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], sep="")] <- val
-        }
-        else {
+      for (val in contrasts[[i]]) {
+        if (paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2],
+          ":", name,
+          sep = ""
+        ) %in% colnames(cont_mat)) {
+          cont_mat[j, paste(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], ":", name, sep = "")] <- val
+        } else if (paste(name, ":", pkg.env$treatment,
+          levels(data[[pkg.env$treatment]])[2],
+          sep = ""
+        ) %in% colnames(cont_mat)) {
+          cont_mat[j, paste(name, ":", pkg.env$treatment, levels(data[[pkg.env$treatment]])[2], sep = "")] <- val
+        } else {
           cont_mat[j, name] <- val
         }
         j <- j + 1
@@ -168,14 +183,16 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
     "Estimate" = sum_model$coefficients,
     "Std. Error" = sum_model$sigma,
     conf_int(sum_model$coefficients, sum_model$sigma),
-    check.names=FALSE
+    check.names = FALSE
   )
 
   ATE.summary <- summary(model)
   ATE <- results
 
-  output <- list("call" = call, "formula" = call$formula, "model" = model,
-                 "ATE" = ATE, "ATE.summary" = ATE.summary)
+  output <- list(
+    "call" = call, "formula" = call$formula, "model" = model,
+    "ATE" = ATE, "ATE.summary" = ATE.summary
+  )
 
   class(output) <- "outcome_regression"
   return(output)

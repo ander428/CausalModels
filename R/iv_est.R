@@ -15,13 +15,15 @@
 #' @examples
 #' library(causaldata)
 #' data(nhefs)
-#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+#' nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 #' nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 #'
-#' confounders <- c("sex", "race", "age", "education", "smokeintensity",
-#'                      "smokeyrs", "exercise", "active", "wt71")
-#' nhefs.iv <- nhefs[which(!is.na(nhefs$wt82) & !is.na(nhefs$price82)),]
-#' nhefs.iv$highprice <- as.factor(ifelse(nhefs.iv$price82>=1.5, 1, 0))
+#' confounders <- c(
+#'   "sex", "race", "age", "education", "smokeintensity",
+#'   "smokeyrs", "exercise", "active", "wt71"
+#' )
+#' nhefs.iv <- nhefs[which(!is.na(nhefs$wt82) & !is.na(nhefs$price82)), ]
+#' nhefs.iv$highprice <- as.factor(ifelse(nhefs.iv$price82 >= 1.5, 1, 0))
 #' nhefs.iv$qsmk <- as.factor(nhefs.iv$qsmk)
 
 #' init_params(wt82_71, qsmk,
@@ -38,25 +40,24 @@ iv_est <- function(IV, data, n.boot = 50) {
   IV_levels <- levels(data[[IV]])
 
   IV <- as.character(params$IV)
-  if(!is.factor(data[[IV]])) {
+  if (!is.factor(data[[IV]])) {
     stop("Instrumental variable must be a factor")
-  }
-  else if(length(IV_levels) > 2) {
+  } else if (length(IV_levels) > 2) {
     stop("Instrumental variable must be binary")
   }
 
   est_func <- function(data, indices, ...) {
-    data <- data[indices,]
+    data <- data[indices, ]
     # manual calculation of standard IV Estimator
-    numer_1 <- mean(data[data[[IV]] == IV_levels[[2]],][[pkg.env$outcome]], na.rm = TRUE)
-    numer_0 <- mean(data[data[[IV]] == IV_levels[[1]],][[pkg.env$outcome]], na.rm = TRUE)
-    denom_1 <- mean(as.numeric(data[data[[IV]] == IV_levels[[2]],][[pkg.env$treatment]]), na.rm = TRUE)
-    denom_0 <- mean(as.numeric(data[data[[IV]] == IV_levels[[1]],][[pkg.env$treatment]]), na.rm = TRUE)
+    numer_1 <- mean(data[data[[IV]] == IV_levels[[2]], ][[pkg.env$outcome]], na.rm = TRUE)
+    numer_0 <- mean(data[data[[IV]] == IV_levels[[1]], ][[pkg.env$outcome]], na.rm = TRUE)
+    denom_1 <- mean(as.numeric(data[data[[IV]] == IV_levels[[2]], ][[pkg.env$treatment]]), na.rm = TRUE)
+    denom_0 <- mean(as.numeric(data[data[[IV]] == IV_levels[[1]], ][[pkg.env$treatment]]), na.rm = TRUE)
 
     return((numer_1 - numer_0) / (denom_1 - denom_0))
   }
 
-  boot_result <- boot(data=data, statistic = est_func, R = n.boot)
+  boot_result <- boot(data = data, statistic = est_func, R = n.boot)
 
   # calculate 95% CI
   beta <- boot_result$t0
@@ -65,7 +66,7 @@ iv_est <- function(IV, data, n.boot = 50) {
     "ATE" = beta,
     "SE" = SE,
     conf_int(beta, SE),
-    check.names=FALSE
+    check.names = FALSE
   )
 
   return(ATE)
