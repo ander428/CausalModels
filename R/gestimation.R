@@ -2,12 +2,12 @@
 #' @title One Parameter G-Estimation of Structural Nested Mean Models
 #' @description `gestimation` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
 #' weights. The weights can either be standardized weights or non-standardized weights. A grid search is done on \eqn{\alpha} for the
-#' to construct the best \eqn{\Beta} coefficient in the structural nested mean model. Alternatively, a linear mean model can be used
+#' to construct the best \eqn{\beta} coefficient in the structural nested mean model. Alternatively, a linear mean model can be used
 #' for a closed form estimator.
 #'
 #' @param data a data frame containing the variables in the model.
 #' This should be the same data used in \code{\link[=init_params]{init_params}}.
-#' @param grid a list of possible \eqn{\Beta} values that will be used in the grid search.
+#' @param grid a list of possible \eqn{\beta} values that will be used in the grid search.
 #' @param ids (optional) see documentation for \code{\link[geepack:geeglm]{geeglm}}. By default rownames of the data will be used.
 #' @param f (optional) an object of class "formula" that overrides the default parameter. NOTE: for g-estimation this should be
 #' a propensity formula.
@@ -15,7 +15,7 @@
 #' By default, this is set to \code{\link[stats:gaussian]{gaussian}}.
 #' @param simple (optional) a boolean indicator to build default formula with interactions for the g-estimation model.
 #' If true, interactions will be excluded. If false, interactions will be included. By default, simple is set to false.
-#' NOTE: \eqn{\Beta}  will be appended to the end of the formula
+#' NOTE: \eqn{\beta}  will be appended to the end of the formula
 #' @param p.f (optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 #' weighting function.
 #' @param p.simple (optional) a boolean indicator to build default formula with interactions for the propensity models.

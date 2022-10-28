@@ -25,7 +25,7 @@ gestimation(
 \item{data}{a data frame containing the variables in the model.
 This should be the same data used in \code{\link[=init_params]{init_params}}.}
 
-\item{grid}{a list of possible \eqn{\Beta} values that will be used in the grid search.}
+\item{grid}{a list of possible \eqn{\beta} values that will be used in the grid search.}
 
 \item{ids}{(optional) see documentation for \code{\link[geepack:geeglm]{geeglm}}. By default rownames of the data will be used.}
 
@@ -37,7 +37,7 @@ By default, this is set to \code{\link[stats:gaussian]{gaussian}}.}
 
 \item{simple}{(optional) a boolean indicator to build default formula with interactions for the g-estimation model.
 If true, interactions will be excluded. If false, interactions will be included. By default, simple is set to false.
-NOTE: \eqn{\Beta}  will be appended to the end of the formula}
+NOTE: \eqn{\beta}  will be appended to the end of the formula}
 
 \item{p.f}{(optional) an object of class "formula" that overrides the default formula for the denominator of the IP
 weighting function.}
@@ -83,7 +83,7 @@ An object of class \code{"gestimation"} is a list containing the following:
 \description{
 `gestimation` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
 weights. The weights can either be standardized weights or non-standardized weights. A grid search is done on \eqn{\alpha} for the
-to construct the best \eqn{\Beta} coefficient in the structural nested mean model. Alternatively, a linear mean model can be used
+to construct the best \eqn{\beta} coefficient in the structural nested mean model. Alternatively, a linear mean model can be used
 for a closed form estimator.
 }
 \examples{
@@ -99,7 +99,6 @@ init_params(wt82_71, qsmk,
             covariates = confounders,
             data = nhefs.nmv)
 
-grid <- seq(from = 1,to = 5, by = 0.05)
-gest.model <- CausalModels::gestimation(nhefs.nmv, grid = grid, type = "one.grid")
+gest.model <- gestimation(nhefs.nmv, type = "one.linear", n.boot = 150)
 gest.model$ATE.summary
 }
