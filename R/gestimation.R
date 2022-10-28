@@ -1,7 +1,7 @@
 
 #' @title One Parameter G-Estimation of Structural Nested Mean Models
 #' @description `gestimation` uses the \code{\link[=propensity_scores]{propensity_scores}} function to generate inverse probability
-#' weights. The weights can either be standardized weights or non-standardized weights. A grid search is done on \eqn{\alpha} for the
+#' weights. The weights can either be standardized weights or non-standardized weights. A grid search is done on \eqn{\alpha}
 #' to construct the best \eqn{\beta} coefficient in the structural nested mean model. Alternatively, a linear mean model can be used
 #' for a closed form estimator.
 #'
