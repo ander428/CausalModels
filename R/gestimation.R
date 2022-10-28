@@ -63,8 +63,7 @@
 #'             covariates = confounders,
 #'             data = nhefs.nmv)
 #'
-#' grid <- seq(from = 1,to = 5, by = 0.05)
-#' gest.model <- CausalModels::gestimation(nhefs.nmv, grid = grid, type = "one.grid")
+#' gest.model <- gestimation(nhefs.nmv, type = "one.linear", n.boot = 150)
 #' gest.model$ATE.summary
 
 #' @export
