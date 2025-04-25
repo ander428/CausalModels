@@ -48,16 +48,20 @@ and the covariates as the independent variables.
 \examples{
 library(causaldata)
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
 
 init_params(wt82_71, qsmk,
-            covariates = confounders,
-            data = nhefs.nmv)
+  covariates = confounders,
+  data = nhefs.nmv
+)
 
 p.score <- propensity_scores(nhefs.nmv)
 p.score
+
 }

@@ -89,15 +89,18 @@ for a closed form estimator.
 \examples{
 library(causaldata)
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
 
 init_params(wt82_71, qsmk,
-            covariates = confounders,
-            data = nhefs.nmv)
+  covariates = confounders,
+  data = nhefs.nmv
+)
 
 gest.model <- gestimation(nhefs.nmv, type = "one.linear", n.boot = 150)
 gest.model$ATE.summary

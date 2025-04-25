@@ -88,15 +88,18 @@ predict function, the predictions themselves can be given for both the outcome a
 \examples{
 library(causaldata)
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
 
 init_params(wt82_71, qsmk,
-            covariates = confounders,
-            data = nhefs.nmv)
+  covariates = confounders,
+  data = nhefs.nmv
+)
 
 # model using all defaults
 model <- doubly_robust(data = nhefs.nmv)
@@ -104,13 +107,18 @@ summary(model)
 
 # use alternative outcome model
 out.mod <- propensity_matching(data = nhefs.nmv)
-db.model <- doubly_robust(out.mod = out.mod,
-                          data = nhefs.nmv)
+db.model <- doubly_robust(
+  out.mod = out.mod,
+  data = nhefs.nmv
+)
 db.model
 
 # give calculated outcome predictions and give formula for propensity scores
-db.model <- doubly_robust(scores = predict(out.mod),
-                          p.f = qsmk ~ sex + race + age,
-                          data = nhefs.nmv)
+db.model <- doubly_robust(
+  scores = predict(out.mod),
+  p.f = qsmk ~ sex + race + age,
+  data = nhefs.nmv
+)
 db.model
+
 }

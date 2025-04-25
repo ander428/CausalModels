@@ -73,18 +73,22 @@ library(causaldata)
 library(multcomp)
 
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
 
 init_params(wt82_71, qsmk,
-            covariates = confounders,
-            data = nhefs.nmv)
+  covariates = confounders,
+  data = nhefs.nmv
+)
 
 pm.model <- propensity_matching(nhefs.nmv)
 pm.model$ATE.summary
 summary(pm.model)
-head(data.frame(preds=predict(pm.model)))
+head(data.frame(preds = predict(pm.model)))
+
 }

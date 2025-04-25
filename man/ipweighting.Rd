@@ -70,15 +70,18 @@ general linear model whose coefficient for treatment represents the average trea
 \examples{
 library(causaldata)
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
 
 init_params(wt82_71, qsmk,
-            covariates = confounders,
-            data = nhefs.nmv)
+  covariates = confounders,
+  data = nhefs.nmv
+)
 
 # model using all defaults
 model <- ipweighting(data = nhefs.nmv)
@@ -88,4 +91,5 @@ summary(model)
 p.scores <- propensity_scores(nhefs.nmv)$p.scores
 model <- ipweighting(wt82_71 ~ qsmk, p.scores = p.scores, data = nhefs.nmv)
 summary(model)
+
 }

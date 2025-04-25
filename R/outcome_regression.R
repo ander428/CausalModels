@@ -105,6 +105,7 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   continuous <- temp_map[has_interaction][-1]
 
 
+
   # if there are no interactions, use original variables
   if (ncol(continuous) == 0) {
     continuous <- temp_map[num_vars]
@@ -122,16 +123,22 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   continuous_names <- names(continuous)
 
   cont_input <- list()
-  for (i in 1:length(names(disc))) {
-    cont_input[[i]] <- paste("Effect of", "qsmk", "at", names(disc[i]))
+  if(length(names(disc)) > 0) {
+    for (i in 1:length(names(disc))) {
+      cont_input[[i]] <- paste("Effect of", pkg.env$treatment, "at", names(disc[i]))
+    }
   }
+
 
   if (length(contrasts) > 0) {
     j <- length(cont_input) + 1
     for (i in 1:length(contrasts)) {
-      cont_input[[j]] <- paste("Effect of", "qsmk", "at", names(contrasts[i]), "of", contrasts[[i]]) # issue is here
+      cont_input[[j]] <- paste("Effect of", pkg.env$treatment, "at", names(contrasts[i]), "of", contrasts[[i]])
       j <- j + 1
     }
+  }
+  else if (length(cont_input) > 0) {
+    warning("No contrasts included in analysis. This will exclude results from any continuous covariates.")
   }
 
   cont_input <- unlist(cont_input)
@@ -144,7 +151,7 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
   }
 
   j <- 1
-  cont_mat[1:length(cont_input), "qsmk1"] <- 1
+  cont_mat[1:length(cont_input), paste0(pkg.env$treatment, levels(data[[pkg.env$treatment]])[2])] <- 1
 
   for (i in 1:length(names(disc))) {
     cont_mat[j, names(disc[i])] <- 1
@@ -173,7 +180,9 @@ outcome_regression <- function(data, f = NA, simple = pkg.env$simple,
     }
   }
 
-  model <- glht(model, cont_mat)
+
+
+  model <- glht(model, linfct = cont_mat)
   call <- model$model$call
 
   # summarize model

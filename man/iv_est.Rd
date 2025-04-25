@@ -25,13 +25,15 @@ This should be the same data used in \code{\link[=init_params]{init_params}}.}
 \examples{
 library(causaldata)
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
-nhefs.iv <- nhefs[which(!is.na(nhefs$wt82) & !is.na(nhefs$price82)),]
-nhefs.iv$highprice <- as.factor(ifelse(nhefs.iv$price82>=1.5, 1, 0))
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
+nhefs.iv <- nhefs[which(!is.na(nhefs$wt82) & !is.na(nhefs$price82)), ]
+nhefs.iv$highprice <- as.factor(ifelse(nhefs.iv$price82 >= 1.5, 1, 0))
 nhefs.iv$qsmk <- as.factor(nhefs.iv$qsmk)
 init_params(wt82_71, qsmk,
             covariates = confounders,

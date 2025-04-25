@@ -11,3 +11,9 @@
 #### Fixed
 
 - Typo in ipweighting documentation
+
+### Version 0.2.1 - 2025/04/27
+
+#### Fixed
+
+- generic treatment names bug

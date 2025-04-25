@@ -28,6 +28,12 @@ As of May 30, 2022, the package has been
 [published on CRAN](https://cran.r-project.org/package=CausalModels).
 ## Change Log
 
+### Version 0.2.1 - 2025/04/27
+
+#### Fixed
+
+- generic treatment names bug (#7)
+
 ### Version 0.2.0 - 2022/10/27
 
 #### Added

@@ -55,15 +55,18 @@ and the risk ratio. Both can be accessed from the model as well as estimates of 
 library(causaldata)
 
 data(nhefs)
-nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)),]
+nhefs.nmv <- nhefs[which(!is.na(nhefs$wt82)), ]
 nhefs.nmv$qsmk <- as.factor(nhefs.nmv$qsmk)
 
-confounders <- c("sex", "race", "age", "education", "smokeintensity",
-                     "smokeyrs", "exercise", "active", "wt71")
+confounders <- c(
+  "sex", "race", "age", "education", "smokeintensity",
+  "smokeyrs", "exercise", "active", "wt71"
+)
 
 init_params(wt82_71, qsmk,
-            covariates = confounders,
-            data = nhefs.nmv)
+  covariates = confounders,
+  data = nhefs.nmv
+)
 
 # model using all defaults
 model <- standardization(data = nhefs.nmv)
@@ -71,5 +74,6 @@ print(model)
 summary(model)
 print(model$ATE.summary)
 print(model$ATE.summary$Estimate[[2]] -
-      model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
+  model$ATE.summary$Estimate[[3]]) # manually calculate risk difference
+
 }
