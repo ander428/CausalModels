@@ -22,7 +22,7 @@ Description:
   Provides an array of statistical models common in causal inference such as 
   standardization, IP weighting, propensity matching, outcome regression, and doubly-robust 
   estimators. Estimates of the average treatment effects from each model are given with the 
-  standard error and a 95% Wald confidence interval (Hernan, Robins (2020) <https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/>).
+  standard error and a 95% Wald confidence interval (Hernan, Robins (2020) <https://miguelhernan.org/whatifbook/>).
 License: GPL-3
 URL: https://github.com/ander428/CausalModels
 BugReports: https://github.com/ander428/CausalModels/issues
