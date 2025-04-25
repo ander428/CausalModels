@@ -14,7 +14,9 @@ variables to correctly infer a causal effect, CausalModels uses simple
 code while requiring the user to make these considerations. This enables
 efficient and thoughtful research using causal inference. As of May 30,
 2022, the package has been [published on
-CRAN](https://cran.r-project.org/package=CausalModels). \## Change Log
+CRAN](https://cran.r-project.org/package=CausalModels).
+
+## Change Log
 
 ### Version 0.2.1 - 2025/04/27
 
